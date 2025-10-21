@@ -134,13 +134,13 @@
         .report-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            font-size: 11px;
         }
 
         .report-table th,
         .report-table td {
             border: 1px solid #ccc;
-            padding: 8px;
+            padding: 8px 6px;
             text-align: center;
         }
 
@@ -221,23 +221,165 @@
         }
 
         @media print {
-            body {
-                background: white;
+            /* Hide browser default headers and footers */
+            @page {
+                margin: 0.5cm;
+                size: auto;
             }
 
-            .back-button, .filters-section, .print-button {
+            /* Reset body and page styles */
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Hide all unnecessary elements */
+            .sidebar,
+            .header,
+            .back-button,
+            .filters-section,
+            .print-button,
+            .report-info,
+            .export-buttons,
+            .export-fab,
+            .fab-container,
+            .export-btn,
+            .fab,
+            .fab-print,
+            .fab-pdf,
+            .fab-excel,
+            button,
+            .btn,
+            nav,
+            footer,
+            .no-print,
+            .user-profile,
+            .system-title,
+            .institute-name,
+            .export-icons,
+            .pdf-icon,
+            .excel-icon,
+            .dashboard-header,
+            .header-left,
+            .header-right,
+            .navigation,
+            .brand-container,
+            .brand-logo,
+            .title,
+            .notifications,
+            .user-profile,
+            .user-avatar,
+            .user-info,
+            .sidebar *,
+            .header *,
+            .dashboard-header *,
+            .header-left *,
+            .header-right *,
+            .navigation *,
+            .notifications *,
+            .user-profile *,
+            .user-avatar *,
+            .user-info *,
+            .fab *,
+            .fab-print *,
+            .fab-pdf *,
+            .fab-excel * {
                 display: none !important;
             }
 
+            /* Show only content area */
+            .container {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .details {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+
             .rpci-content {
-                padding: 0;
+                padding: 10px !important;
+                margin: 0 !important;
+            }
+
+            /* Style the header for print */
+            .report-header {
+                text-align: center;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #000;
+                page-break-after: avoid;
+            }
+
+            .report-header h1 {
+                font-size: 14px;
+                margin: 2px 0;
+                color: #000;
+            }
+
+            .report-header p {
+                font-size: 12px;
+                margin: 3px 0;
+            }
+
+            /* Show accountability info for print */
+            .accountability-info {
+                display: block !important;
+                text-align: center;
+                margin: 20px 0;
+                padding: 15px;
+                background: white !important;
+                border-radius: 0 !important;
+                page-break-after: avoid;
+            }
+
+            .accountability-info p {
+                margin: 0;
+                font-size: 12px;
+                color: #000;
+            }
+
+            /* Style the table for print */
+            .report-table-container {
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+
+            .report-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 10px;
+                page-break-inside: auto;
+            }
+
+            .report-table thead {
+                display: table-header-group;
+            }
+
+            .report-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
             }
 
             .report-table th,
             .report-table td {
                 border: 1px solid #000 !important;
-                padding: 5px;
-                font-size: 12px;
+                padding: 4px 2px !important;
+                font-size: 8px !important;
+                text-align: center;
+            }
+
+            .report-table th {
+                background-color: #f0f0f0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                font-weight: 600;
             }
         }
     </style>
@@ -309,6 +451,7 @@
                     {!! isset($header['assumption_date']) && trim($header['assumption_date']) !== '' ? e(\Carbon\Carbon::parse($header['assumption_date'])->format('F d, Y')) : '<span style="border-bottom:1px solid #000;padding:0 90px;display:inline-block;">&nbsp;</span>' !!}.
                 </p>
             </div>
+            {{-- Data filters --}}
             <div class="filters-section">
                 <form method="GET" action="{{ route('client.report.rpci') }}" class="filters-form">
                     <div class="filter-group">
@@ -332,8 +475,12 @@
                         </select>
                     </div>
                     <div class="filter-actions">
-                        <button type="submit" class="btn btn-primary">Filter</button>
-                        <a href="{{ route('client.report.rpci') }}" class="btn btn-secondary">Clear</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                        <a href="{{ route('client.report.rpci') }}" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Reset
+                        </a>
                     </div>
                 </form>
             </div>

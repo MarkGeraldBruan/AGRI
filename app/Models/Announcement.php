@@ -2,13 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Announcement extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
         'title',
         'content',
@@ -23,18 +22,51 @@ class Announcement extends Model
         'updated_at' => 'datetime'
     ];
 
-    public function creator()
+    /**
+     * Get the user who created the announcement
+     */
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function scopePublished($query)
+    /**
+     * Get the supplies associated with this announcement
+     * FIXED: Added foreignPivotKey and relatedPivotKey to match migration column names
+     */
+    public function supplies(): BelongsToMany
     {
-        return $query->where('status', 'published');
+        return $this->belongsToMany(Supplies::class, 'announcement_supplies', 'announcement_id', 'supply_id')
+            ->withPivot(['quantity_needed', 'quantity_used', 'status', 'notes', 'reserved_at', 'used_at'])
+            ->withTimestamps();
     }
 
-    public function scopeDraft($query)
+    /**
+     * Check if announcement has supplies attached
+     */
+    public function hasSupplies(): bool
     {
-        return $query->where('status', 'draft');
+        return $this->supplies()->exists();
+    }
+
+    /**
+     * Get total quantity needed for all supplies
+     */
+    public function getTotalQuantityNeededAttribute(): int
+    {
+        return $this->supplies()->sum('announcement_supplies.quantity_needed');
+    }
+
+    /**
+     * Check if all supplies are available
+     */
+    public function hasAvailableStock(): bool
+    {
+        foreach ($this->supplies as $supply) {
+            if ($supply->quantity < $supply->pivot->quantity_needed) {
+                return false;
+            }
+        }
+        return true;
     }
 }

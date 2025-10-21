@@ -260,29 +260,132 @@
 
         @media print {
             body {
-                background: white;
+                font-family: 'DejaVu Sans Custom', 'DejaVu Sans', 'Times New Roman', serif;
+                font-size: 10px;
+                line-height: 1.4;
+                margin: 0;
+                padding: 10px;
             }
-            
-            .back-button, .filters-section, .print-button {
-                display: none !important;
+
+            /* Show container and content */
+            .container {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .details {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
             }
 
             .rpc-ppe-content {
-                padding: 0;
+                padding: 10px !important;
+                margin: 0 !important;
+            }
+
+            /* Show report info but hide header grid for print */
+            .report-info {
+                display: block !important;
+                background: white !important;
+                padding: 10px !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                margin-bottom: 10px !important;
+                page-break-after: avoid;
+            }
+
+            .header-grid {
+                display: none !important;
+            }
+
+            /* Show accountability info for print */
+            .accountability-info {
+                display: block !important;
+                text-align: center;
+                margin: 20px 0;
+                padding: 15px;
+                background: white !important;
+                border-radius: 0 !important;
+                page-break-after: avoid;
+            }
+
+            .accountability-info p {
+                margin: 0;
+                font-size: 12px;
+                color: #000;
+            }
+
+            .back-button, .filters-section, .print-button, .sidebar, .header, .logo, .system-title, .profile-pic, .user-profile, .brand-logo, .institute-name, .nav-icons, .export-fab, .fab, .navbar, .brand, .title-box, .header-container, .institute-title, .export-buttons,
+            .dashboard-header, .header-left, .header-right, .navigation, .brand-container, .notifications, .user-avatar, .user-info, .fab-print, .fab-pdf, .fab-excel, .sidebar *, .header *, .dashboard-header *, .header-left *, .header-right *, .navigation *, .notifications *, .user-profile *, .user-avatar *, .user-info *, .fab *, .fab-print *, .fab-pdf *, .fab-excel * {
+                display: none !important;
+            }
+
+            .report-header {
+                text-align: center;
+                margin-bottom: 15px;
+                border-bottom: 2px solid #000;
+                padding-bottom: 10px;
+            }
+
+            .report-header h1 {
+                font-size: 14px;
+                font-weight: bold;
+                margin: 0;
+                text-transform: uppercase;
+            }
+
+            .report-header p {
+                font-size: 11px;
+                margin: 5px 0;
             }
 
             .equipment-table {
-                font-size: 9px;
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 8px;
+                margin-bottom: 20px;
+                border: 1px solid #000;
             }
 
             .equipment-table th {
-                font-size: 8px;
-                padding: 6px 4px;
+                padding: 4px 2px;
+                text-align: center;
+                font-weight: bold;
+                border: 1px solid #000;
+                background: #f0f0f0;
+                font-size: 7px;
+                text-transform: uppercase;
             }
 
             .equipment-table td {
+                padding: 4px 2px;
+                border: 1px solid #000;
+                font-size: 8px;
+            }
+
+            .classification-header-row {
+                background: #e0e0e0 !important;
+            }
+
+            .classification-header-row td {
+                font-weight: bold;
                 font-size: 9px;
-                padding: 6px 4px;
+                padding: 6px 2px;
+                text-align: center;
+            }
+
+            .text-center {
+                text-align: center;
+            }
+
+            .text-right {
+                text-align: right;
+            }
+
+            .page-break {
+                page-break-before: always;
             }
 
             .classification-section {
@@ -349,67 +452,21 @@
                     </div>
 
                     {{-- Accountability text --}}
-                    <div style="margin-top: 20px; text-align: center; font-style: italic;">
-                        {!! isset($header['accountability_text']) && trim($header['accountability_text']) !== '' ? e($header['accountability_text']) : 'For which ________________, ________________, ________________ is accountable, having assumed such accountability on ________________.' !!}
+                    <div class="accountability-info" style="text-align: center; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <p>
+                            For which
+                            {!! isset($header['accountable_person']) && trim($header['accountable_person']) !== '' ? e($header['accountable_person']) : '<span style="border-bottom:1px solid #000;padding:0 90px;display:inline-block;">&nbsp;</span>' !!},
+                            {!! isset($header['position']) && trim($header['position']) !== '' ? e($header['position']) : '<span style="border-bottom:1px solid #000;padding:0 90px;display:inline-block;">&nbsp;</span>' !!},
+                            {!! isset($header['office']) && trim($header['office']) !== '' ? e($header['office']) : '<span style="border-bottom:1px solid #000;padding:0 90px;display:inline-block;">&nbsp;</span>' !!}
+                            is accountable, having assumed such accountability on
+                            {!! isset($header['assumption_date']) && trim($header['assumption_date']) !== '' ? e(\Carbon\Carbon::parse($header['assumption_date'])->format('F d, Y')) : '<span style="border-bottom:1px solid #000;padding:0 90px;display:inline-block;">&nbsp;</span>' !!}.
+                        </p>
                     </div>
                 </div>
 
-                {{-- Header input form --}}
-                <div class="filters-section">
-                    <form method="get" class="filters-form">
-                        {{-- preserve current filters as hidden inputs --}}
-                        <input type="hidden" name="classification" value="{{ request('classification') }}">
-                        <input type="hidden" name="condition" value="{{ request('condition') }}">
-                        <input type="hidden" name="date_from" value="{{ request('date_from') }}">
-                        <input type="hidden" name="date_to" value="{{ request('date_to') }}">
-
-                        <div class="filter-group">
-                            <label>As of</label>
-                            <input type="date" name="as_of" value="{{ request('as_of') ?? request('date_to') ?? now()->format('Y-m-d') }}">
-                        </div>
-                        <div class="filter-group">
-                            <label>Entity Name</label>
-                            <input type="text" name="entity_name" value="{{ request('entity_name') ?? '' }}">
-                        </div>
-                        <div class="filter-group">
-                            <label>Fund Cluster</label>
-                            <input type="text" name="fund_cluster" value="{{ request('fund_cluster') ?? '' }}">
-                        </div>
-                        <div class="filter-group">
-                            <label>Accountable Person</label>
-                            <input type="text" name="accountable_person" value="{{ request('accountable_person') ?? '' }}">
-                        </div>
-                        <div class="filter-group">
-                            <label>Position</label>
-                            <input type="text" name="position" value="{{ request('position') ?? '' }}">
-                        </div>
-                        <div class="filter-group">
-                            <label>Office</label>
-                            <input type="text" name="office" value="{{ request('office') ?? '' }}">
-                        </div>
-                        <div class="filter-group">
-                            <label>Assumption Date</label>
-                            <input type="date" name="assumption_date" value="{{ request('assumption_date') ?? '' }}">
-                        </div>
-                        <div class="filter-group">
-                            <button type="submit" class="btn btn-primary">Apply Header</button>
-                            <a href="{{ route('client.report.rpc-ppe') }}" class="btn btn-secondary">Reset</a>
-                        </div>
-                    </form>
-                </div>
-
                 {{-- Data filters --}}
-                <div class="filters-section" style="margin-top: 10px; background: #f8f9fa; border: 1px solid #ddd;">
+                <div class="filters-section">
                     <form method="GET" action="{{ route('client.report.rpc-ppe') }}" class="filters-form">
-                        {{-- preserve header inputs as hidden --}}
-                        <input type="hidden" name="as_of" value="{{ request('as_of') }}">
-                        <input type="hidden" name="entity_name" value="{{ request('entity_name') }}">
-                        <input type="hidden" name="fund_cluster" value="{{ request('fund_cluster') }}">
-                        <input type="hidden" name="accountable_person" value="{{ request('accountable_person') }}">
-                        <input type="hidden" name="position" value="{{ request('position') }}">
-                        <input type="hidden" name="office" value="{{ request('office') }}">
-                        <input type="hidden" name="assumption_date" value="{{ request('assumption_date') }}">
-
                         <div class="filter-group">
                             <label>Classification</label>
                             <select name="classification">
@@ -448,6 +505,50 @@
                             <a href="{{ route('client.report.rpc-ppe') }}" class="btn btn-secondary">
                                 <i class="fas fa-redo"></i> Reset
                             </a>
+                        </div>
+                    </form>
+                </div>
+
+                {{-- Header input form --}}
+                <div class="filters-section" style="margin-top: 10px; background: #f8f9fa; border: 1px solid #ddd;">
+                    <form method="get" class="filters-form">
+                        {{-- preserve current filters as hidden inputs --}}
+                        <input type="hidden" name="classification" value="{{ request('classification') }}">
+                        <input type="hidden" name="condition" value="{{ request('condition') }}">
+                        <input type="hidden" name="date_from" value="{{ request('date_from') }}">
+                        <input type="hidden" name="date_to" value="{{ request('date_to') }}">
+
+                        <div class="filter-group">
+                            <label>As of</label>
+                            <input type="date" name="as_of" value="{{ request('as_of') }}">
+                        </div>
+                        <div class="filter-group">
+                            <label>Entity Name</label>
+                            <input type="text" name="entity_name" value="{{ request('entity_name') }}">
+                        </div>
+                        <div class="filter-group">
+                            <label>Fund Cluster</label>
+                            <input type="text" name="fund_cluster" value="{{ request('fund_cluster') }}">
+                        </div>
+                        <div class="filter-group">
+                            <label>Accountable Person</label>
+                            <input type="text" name="accountable_person" value="{{ request('accountable_person') }}">
+                        </div>
+                        <div class="filter-group">
+                            <label>Position</label>
+                            <input type="text" name="position" value="{{ request('position') }}">
+                        </div>
+                        <div class="filter-group">
+                            <label>Office</label>
+                            <input type="text" name="office" value="{{ request('office') }}">
+                        </div>
+                        <div class="filter-group">
+                            <label>Assumption Date</label>
+                            <input type="date" name="assumption_date" value="{{ request('assumption_date') }}">
+                        </div>
+                        <div class="filter-group">
+                            <button type="submit" class="btn btn-primary">Apply Header</button>
+                            <a href="{{ route('client.report.rpc-ppe') }}" class="btn btn-secondary">Reset</a>
                         </div>
                     </form>
                 </div>
@@ -503,7 +604,7 @@
                                                 <td>{{ $equipment->description ?: '-' }}</td>
                                                 <td class="text-center">{{ $equipment->property_number }}</td>
                                                 <td class="text-center">{{ $equipment->unit_of_measurement }}</td>
-                                                <td class="text-right">{{ number_format($equipment->unit_value, 2) }}</td>
+                                                <td class="text-right">₱ {{ number_format($equipment->unit_value, 2) }}</td>
                                                 <td class="text-center">
                                                     {{ $equipment->acquisition_date ? $equipment->acquisition_date->format('M-d') : '-' }}
                                                 </td>

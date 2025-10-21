@@ -42,8 +42,7 @@ class PpesExport implements FromArray, WithEvents, WithColumnFormatting, ShouldA
             $query->where('classification', 'like', '%' . $this->request->classification . '%');
         }
 
-        $equipment = $query->where('condition', 'Unserviceable')
-            ->orderBy('acquisition_date', 'desc')
+        $equipment = $query->orderBy('acquisition_date', 'desc')
             ->get();
 
         $ppesItems = $equipment->map(function ($equipment) {
@@ -107,20 +106,20 @@ class PpesExport implements FromArray, WithEvents, WithColumnFormatting, ShouldA
                     $item->particulars_articles,
                     $item->property_no,
                     $item->qty,
-                    (float) ($item->unit_cost ?? 0),
-                    (float) ($item->total_cost ?? 0),
-                    (float) ($item->accumulated_depreciation ?? 0),
-                    (float) ($item->accumulated_impairment_losses ?? 0),
-                    (float) ($item->carrying_amount ?? 0),
+                    number_format((float) ($item->unit_cost ?? 0), 2),
+                    number_format((float) ($item->total_cost ?? 0), 2),
+                    number_format((float) ($item->accumulated_depreciation ?? 0), 2),
+                    number_format((float) ($item->accumulated_impairment_losses ?? 0), 2),
+                    number_format((float) ($item->carrying_amount ?? 0), 2),
                     $item->remarks,
                     $item->sale,
                     $item->transfer,
                     $item->destruction,
                     $item->others,
                     $item->total_disposal,
-                    (float) ($item->appraised_value ?? 0),
+                    number_format((float) ($item->appraised_value ?? 0), 2),
                     $item->or_no,
-                    (float) ($item->amount ?? 0),
+                    number_format((float) ($item->amount ?? 0), 2),
                     '',
                 ];
         }

@@ -53,29 +53,28 @@
                 <span class="title">Report</span>
             </a>
         </li>
-        
-        <!-- Fixed dropdown structure -->
-        <li class="dropdown {{ Request::is('client/stockcard*') || Request::is('client/propertycard*') ? 'hovered' : '' }}">
-            <a href="#" class="dropdown-toggle" onclick="toggleDropdown(event, this);">
-                <span class="icon"><ion-icon name="layers-outline"></ion-icon></span>
+        <li class="dropdown {{ Request::is('client/stockcard*') || Request::is('client/propertycard*') ? 'active' : '' }}">
+            <a href="#" onclick="toggleDropdown(event, this)">
+                <span class="icon"><ion-icon name="document-text-outline"></ion-icon></span>
                 <span class="title">Generate Cards</span>
-                <span class="dropdown-arrow"><ion-icon name="chevron-down-outline"></ion-icon></span>
             </a>
             <ul class="dropdown-menu">
-                <li class="{{ Request::is('client/stockcard*') ? 'hovered' : '' }}">
-                    <a href="{{ route('client.stockcard.index') }}" class="nav-link">
-                        <span class="icon"><ion-icon name="receipt-outline"></ion-icon></span>
+                <li class="{{ Request::is('client/stockcard*') ? 'active' : '' }}">
+                    <a href="{{ route('client.stockcard.index') }}">
+                        <span class="icon"><ion-icon name="document-text-outline"></ion-icon></span>
                         <span class="title">Stock Card</span>
                     </a>
                 </li>
-                <li class="{{ Request::is('client/propertycard*') ? 'hovered' : '' }}">
-                    <a href="{{ route('client.propertycard.index') }}" class="nav-link">
-                        <span class="icon"><ion-icon name="document-text-outline"></ion-icon></span>
+                <li class="{{ Request::is('client/propertycard*') ? 'active' : '' }}">
+                    <a href="{{ route('client.propertycard.index') }}">
+                        <span class="icon"><ion-icon name="receipt-outline"></ion-icon></span>
                         <span class="title">Property Card</span>
                     </a>
                 </li>
             </ul>
         </li>
+        
+
         
         <li class="{{ Request::is('client/help*') ? 'hovered' : '' }}">
             <a href="{{ route('client.help.index') }}">
@@ -106,20 +105,45 @@
 function toggleDropdown(event, element) {
     // Prevent the link from navigating
     event.preventDefault();
-    
+
     // Get the parent li element
     const parentLi = element.parentElement;
-    
+
+    // Remove hovered class from all li elements
+    const allLis = document.querySelectorAll('.navigation ul li');
+    allLis.forEach(li => {
+        li.classList.remove('hovered');
+    });
+
     // Close all other dropdowns first
     const allDropdowns = document.querySelectorAll('.navigation .dropdown');
     allDropdowns.forEach(dropdown => {
         if (dropdown !== parentLi) {
             dropdown.classList.remove('open');
+            dropdown.classList.remove('active');
         }
     });
-    
+
     // Toggle the current dropdown
     parentLi.classList.toggle('open');
+
+    // Add hovered class to the parent li when open
+    if (parentLi.classList.contains('open')) {
+        parentLi.classList.add('hovered');
+    }
+
+    // Add active class when opened or if any child is active
+    if (parentLi.classList.contains('open') || parentLi.querySelector('.dropdown-menu li.active')) {
+        parentLi.classList.add('active');
+    } else {
+        parentLi.classList.remove('active');
+    }
+
+    // Add hovered class to active child items
+    const activeChildren = parentLi.querySelectorAll('.dropdown-menu li.active');
+    activeChildren.forEach(child => {
+        child.classList.add('hovered');
+    });
 }
 
 // Close dropdown when clicking outside
@@ -146,5 +170,7 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = this.href;
         });
     });
+
+
 });
 </script>

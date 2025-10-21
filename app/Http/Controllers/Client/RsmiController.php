@@ -69,7 +69,7 @@ class RsmiController extends Controller
         $asOfRaw = $request->query('as_of');
         $header = [
             'as_of' => $asOfRaw ? Carbon::parse($asOfRaw)->format('F Y') : now()->format('F Y'),
-            'entity_name' => $request->query('entity_name', 'ATI-RTC I'),
+            'entity_name' => $request->query('entity_name', ''),
             'fund_cluster' => $request->query('fund_cluster', ''),
             'accountable_person' => $request->query('accountable_person', ''),
             'position' => $request->query('position', ''),
@@ -141,7 +141,7 @@ class RsmiController extends Controller
         $asOfRaw = $request->query('as_of');
         $header = [
             'as_of' => $asOfRaw ? Carbon::parse($asOfRaw)->format('F Y') : now()->format('F Y'),
-            'entity_name' => $request->query('entity_name', 'ATI-RTC I'),
+            'entity_name' => $request->query('entity_name', ''),
             'fund_cluster' => $request->query('fund_cluster', ''),
             'accountable_person' => $request->query('accountable_person', ''),
             'position' => $request->query('position', ''),

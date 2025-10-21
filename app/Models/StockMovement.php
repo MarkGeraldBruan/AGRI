@@ -8,6 +8,14 @@ use Carbon\Carbon;
 
 class StockMovement extends Model
 {
+    /**
+     * IMPORTANT: Set the correct table name
+     * If your migration created 'stockcard' table, use 'stockcard'
+     * If you created 'stock_movements' table, use 'stock_movements'
+     * Check your database to see which table exists!
+     */
+    protected $table = 'stock_movements'; // Change to 'stockcard' if that's your table name
+
     protected $fillable = [
         'supply_id',
         'type',
@@ -28,7 +36,7 @@ class StockMovement extends Model
      */
     public function supply(): BelongsTo
     {
-        return $this->belongsTo(Supplies::class);
+        return $this->belongsTo(Supplies::class, 'supply_id');
     }
 
     /**

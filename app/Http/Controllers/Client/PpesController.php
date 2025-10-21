@@ -30,9 +30,8 @@ class PpesController extends Controller
             $query->where('classification', 'like', '%' . $request->classification . '%');
         }
 
-        // Focus on unserviceable equipment for PPES report
-        $ppesItems = $query->where('condition', 'Unserviceable')
-            ->orderBy('acquisition_date', 'desc')
+        // Get all equipment for PPES report
+        $ppesItems = $query->orderBy('acquisition_date', 'desc')
             ->get()
             ->map(function ($equipment) {
                 return (object) [
@@ -59,20 +58,29 @@ class PpesController extends Controller
                 ];
             });
 
+        // Get all unique classifications for filter dropdown
+        $classifications = Equipment::whereNotNull('classification')
+            ->where('classification', '!=', '')
+            ->distinct()
+            ->pluck('classification')
+            ->sort()
+            ->values();
+
         // normalize 'as_of' to always be a human friendly formatted date (e.g. "October 18, 2025")
         $asOfRaw = $request->input('as_of');
         $header = [
-            'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : now()->format('F d, Y'),
-            'entity_name' => $request->input('entity_name', 'Agricultural Training Institute-RTC I'),
-            'fund_cluster' => $request->input('fund_cluster', '01'),
-            'accountable_person' => $request->input('accountable_person', 'Franklin A. Salcedo'),
-            'position' => $request->input('position', 'Supply and Property Officer'),
-            'office' => $request->input('office', 'ATI-RTC I'),
-            'assumption_date' => $request->input('assumption_date', 'October 15, 2015'),
+            'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : '',
+            'entity_name' => $request->input('entity_name') ?: '',
+            'fund_cluster' => $request->input('fund_cluster') ?: '',
+            'accountable_person' => $request->input('accountable_person') ?: '',
+            'position' => $request->input('position') ?: '',
+            'office' => $request->input('office') ?: '',
+            'assumption_date' => $request->input('assumption_date') ?: '',
         ];
 
         return view('client.report.ppes.index', [
             'ppesItems' => $ppesItems,
+            'classifications' => $classifications,
             'filters' => $request->all(),
             'header' => $header,
         ]);
@@ -96,8 +104,7 @@ class PpesController extends Controller
             $query->where('classification', 'like', '%' . $request->classification . '%');
         }
 
-        $ppesItems = $query->where('condition', 'Unserviceable')
-            ->orderBy('acquisition_date', 'desc')
+        $ppesItems = $query->orderBy('acquisition_date', 'desc')
             ->get()
             ->map(function ($equipment) {
                 return (object) [
@@ -124,13 +131,13 @@ class PpesController extends Controller
 
         $asOfRaw = $request->input('as_of');
         $header = [
-            'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : now()->format('F d, Y'),
-            'entity_name' => $request->input('entity_name', 'Agricultural Training Institute-RTC I'),
-            'fund_cluster' => $request->input('fund_cluster', '01'),
-            'accountable_person' => $request->input('accountable_person', 'Franklin A. Salcedo'),
-            'position' => $request->input('position', 'Supply and Property Officer'),
-            'office' => $request->input('office', 'ATI-RTC I'),
-            'assumption_date' => $request->input('assumption_date', 'October 15, 2015'),
+            'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : '',
+            'entity_name' => $request->input('entity_name') ?: '',
+            'fund_cluster' => $request->input('fund_cluster') ?: '',
+            'accountable_person' => $request->input('accountable_person') ?: '',
+            'position' => $request->input('position') ?: '',
+            'office' => $request->input('office') ?: '',
+            'assumption_date' => $request->input('assumption_date') ?: '',
         ];
 
         $pdf = Pdf::loadView('client.report.ppes.pdf', [

@@ -54,18 +54,18 @@ class RpcPpeController extends Controller
         $serviceableCount = $allEquipment->where('condition', 'Serviceable')->count();
         $unserviceableCount = $allEquipment->where('condition', 'Unserviceable')->count();
 
-        // Build header values from request
+        // Build header values from request - only populate if provided
         $header = [
-            'as_of' => $request->query('as_of') ? \Carbon\Carbon::parse($request->query('as_of'))->format('F d, Y') : now()->format('F d, Y'),
-            'entity_name' => $request->query('entity_name', 'ATI-RTC I'),
-            'fund_cluster' => $request->query('fund_cluster', ''),
-            'accountable_person' => $request->query('accountable_person', ''),
-            'position' => $request->query('position', ''),
-            'office' => $request->query('office', ''),
-            'assumption_date' => $request->query('assumption_date', ''),
+            'as_of' => $request->query('as_of') ? \Carbon\Carbon::parse($request->query('as_of'))->format('F d, Y') : '',
+            'entity_name' => $request->query('entity_name') ?: '',
+            'fund_cluster' => $request->query('fund_cluster') ?: '',
+            'accountable_person' => $request->query('accountable_person') ?: '',
+            'position' => $request->query('position') ?: '',
+            'office' => $request->query('office') ?: '',
+            'assumption_date' => $request->query('assumption_date') ?: '',
             'serial_no' => $request->query('serial_no', now()->format('Y-m-d')),
             'date' => $request->query('date', now()->format('F d, Y')),
-            'accountability_text' => 'For which ' . ($request->query('accountable_person', '________________')) . ', ' . ($request->query('position', '________________')) . ', ' . ($request->query('office', '________________')) . ' is accountable, having assumed such accountability on ' . ($request->query('assumption_date', '________________')) . '.',
+            'accountability_text' => 'For which ' . ($request->query('accountable_person') ?: '________________') . ', ' . ($request->query('position') ?: '________________') . ', ' . ($request->query('office') ?: '________________') . ' is accountable, having assumed such accountability on ' . ($request->query('assumption_date') ?: '________________') . '.',
         ];
 
         return view('client.report.rpc-ppe.index', compact(
@@ -108,18 +108,18 @@ class RpcPpeController extends Controller
         // Group equipment by classification
         $groupedEquipment = $allEquipment->groupBy('classification');
 
-        // Build header values from request
+        // Build header values from request - only populate if provided
         $header = [
-            'as_of' => $request->query('as_of') ? \Carbon\Carbon::parse($request->query('as_of'))->format('F d, Y') : now()->format('F d, Y'),
-            'entity_name' => $request->query('entity_name', 'ATI-RTC I'),
-            'fund_cluster' => $request->query('fund_cluster', ''),
-            'accountable_person' => $request->query('accountable_person', ''),
-            'position' => $request->query('position', ''),
-            'office' => $request->query('office', ''),
-            'assumption_date' => $request->query('assumption_date', ''),
+            'as_of' => $request->query('as_of') ? \Carbon\Carbon::parse($request->query('as_of'))->format('F d, Y') : '',
+            'entity_name' => $request->query('entity_name') ?: '',
+            'fund_cluster' => $request->query('fund_cluster') ?: '',
+            'accountable_person' => $request->query('accountable_person') ?: '',
+            'position' => $request->query('position') ?: '',
+            'office' => $request->query('office') ?: '',
+            'assumption_date' => $request->query('assumption_date') ?: '',
             'serial_no' => $request->query('serial_no', now()->format('Y-m-d')),
             'date' => $request->query('date', now()->format('F d, Y')),
-            'accountability_text' => 'For which ' . ($request->query('accountable_person', '________________')) . ', ' . ($request->query('position', '________________')) . ', ' . ($request->query('office', '________________')) . ' is accountable, having assumed such accountability on ' . ($request->query('assumption_date', '________________')) . '.',
+            'accountability_text' => 'For which ' . ($request->query('accountable_person') ?: '________________') . ', ' . ($request->query('position') ?: '________________') . ', ' . ($request->query('office') ?: '________________') . ' is accountable, having assumed such accountability on ' . ($request->query('assumption_date') ?: '________________') . '.',
         ];
 
         $data = [

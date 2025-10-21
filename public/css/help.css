@@ -148,8 +148,9 @@
 }
 
 .help-date {
-    color: #888;
+    color: #333;
     font-size: 12px;
+    font-weight: 500;
 }
 
 .help-badges {
@@ -279,8 +280,9 @@
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px solid #e0e0e0;
-    color: #888;
+    color: #333;
     font-size: 14px;
+    font-weight: 500;
 }
 
 /* Badges */

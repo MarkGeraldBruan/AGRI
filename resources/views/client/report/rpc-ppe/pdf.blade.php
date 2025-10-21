@@ -139,7 +139,7 @@
     </div>
 
     <div class="accountability-info">
-        <p>For which {{ $header['accountable_person'] }}, {{ $header['position'] }}, {{ $header['office'] }} is accountable, having assumed such accountability on {{ $header['assumption_date'] }}.</p>
+        <p>For which {{ $header['accountable_person'] }}, {{ $header['position'] }}, {{ $header['office'] }} is accountable, having assumed such accountability on {{ isset($header['assumption_date']) && trim($header['assumption_date']) !== '' ? \Carbon\Carbon::parse($header['assumption_date'])->format('F d, Y') : '________________' }}.</p>
     </div>
 
     @if($groupedEquipment->count() > 0)
@@ -191,7 +191,7 @@
                                 <td>{{ $equipment->description ?: '-' }}</td>
                                 <td class="text-center">{{ $equipment->property_number }}</td>
                                 <td class="text-center">{{ $equipment->unit_of_measurement }}</td>
-                                <td class="text-right">&#8369; {{ number_format($equipment->unit_value, 2) }}</td>
+                                <td class="text-right">{{ number_format($equipment->unit_value, 2) }}</td>
                                 <td class="text-center">
                                     {{ $equipment->acquisition_date ? $equipment->acquisition_date->format('M-d') : '-' }}
                                 </td>

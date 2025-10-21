@@ -13,10 +13,13 @@
             font-style: normal;
         }
         body { font-family: 'DejaVu Sans Custom', Arial, sans-serif; margin: 0; padding: 20px; font-size: 12px; }
+        @media print {
+            body { margin: 0; padding: 0; }
+        }
         .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
         .header h1 { margin: 0; font-size: 16px; font-weight: bold; }
         .header p { margin: 5px 0; }
-        .accountability { text-align: center; margin: 20px 0; padding: 10px; background: #f9f9f9; }
+        .accountability { text-align: center; margin: 20px 0; padding: 10px; }
         .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .table th, .table td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px; }
         .table th { background-color: #f0f0f0; font-weight: bold; }
@@ -27,8 +30,8 @@
         <h1>REPORT ON THE PHYSICAL COUNT OF INVENTORIES</h1>
         <h1>COMMON SUPPLIES AND EQUIPMENTS</h1>
         <h1>(REGULAR)</h1>
-        <p>As of {{ $header['as_of'] ?? now()->format('F d, Y') }}</p>
-        <p>Fund Cluster : {{ $header['fund_cluster'] ?? '________________________________' }}</p>
+        <p>As of {!! isset($header['as_of']) && trim($header['as_of']) !== '' ? e($header['as_of']) : '______' !!}</p>
+        <p>Fund Cluster : {!! isset($header['fund_cluster']) && trim($header['fund_cluster']) !== '' ? e($header['fund_cluster']) : '______' !!}</p>
     </div>
 
     <div class="accountability">
@@ -67,11 +70,11 @@
                     <td>{{ $item->description }}</td>
                     <td>{{ $item->stock_number }}</td>
                     <td>{{ $item->unit_of_measure }}</td>
-                    <td>&#8369; {{ number_format($item->unit_value, 2) }}</td>
+                    <td>{{ number_format($item->unit_value, 2) }}</td>
                     <td>{{ $item->balance_per_card }}</td>
                     <td>{{ $item->on_hand_per_count }}</td>
                     <td>{{ $item->shortage_overage_quantity }}</td>
-                    <td>&#8369; {{ number_format($item->shortage_overage_value, 2) }}</td>
+                    <td>{{ number_format($item->shortage_overage_value, 2) }}</td>
                     <td>{{ $item->remarks }}</td>
                 </tr>
             @empty

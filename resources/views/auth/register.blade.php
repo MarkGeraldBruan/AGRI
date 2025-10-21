@@ -593,8 +593,8 @@
             </a>
 
             <p class="signin-text">
-                {{ __("Already have an account?") }} 
-                <a href="{{ route('login') }}" class="signin-link">{{ __('Sign in') }}</a>
+                {{ __("Back to") }}
+                <a href="{{ route('login') }}" class="signin-link">{{ __('Login') }}</a>
             </p>
         </form>
     </div>

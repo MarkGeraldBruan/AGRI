@@ -8,14 +8,15 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/supplies.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/announcement.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
-    <style>
-        
+    <style>       
         .reports-content {
             flex: 1;
-            background: #296218;
+            background: #d4edda;
             padding: 30px;
             display: flex;
             flex-direction: column;
@@ -25,7 +26,7 @@
         }
 
         .reports-title {
-            color: white;
+            color: #2c3e50;
             font-size: 28px;
             font-weight: bold;
             margin-bottom: 20px;
@@ -132,9 +133,14 @@
             @include('layouts.core.header')
             
             <!-- Reports Content -->
-            <div class="reports-content">
-                <h1 class="reports-title">Reports</h1>
-                
+            <div class="supplies-container">
+                <div class="supplies-header">
+                    <h1 class="supplies-title">
+                        <i class="fas fa-chart-line"></i>
+                        Reports
+                    </h1>
+                </div>
+
                 <div class="reports-grid">
                     <a href="{{ route('client.report.rpci') }}" class="report-button">
                         <i class="fas fa-clipboard-list report-icon"></i>
@@ -161,6 +167,7 @@
                     </a>
                 </div>
             </div>
+        </div>
         </div>   
     </div>
 

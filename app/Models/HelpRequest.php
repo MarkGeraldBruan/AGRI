@@ -27,10 +27,19 @@ class HelpRequest extends Model
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
-
+    
     public function getCreatedDateAttribute()
     {
-        return $this->created_at->format('d F, Y h:i A');
+        return $this->created_at
+            ->timezone('Asia/Manila')
+            ->format('F d, Y h:i A');
+    }
+
+    public function getUpdatedDateAttribute()
+    {
+        return $this->updated_at
+            ->timezone('Asia/Manila')
+            ->format('F d, Y h:i A');
     }
 
     public function getPriorityColorAttribute()

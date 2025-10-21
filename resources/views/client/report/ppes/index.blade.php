@@ -122,13 +122,13 @@
         .report-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         .report-table th,
         .report-table td {
             border: 1px solid #ccc;
-            padding: 6px;
+            padding: 8px 6px;
             text-align: center;
         }
 
@@ -205,23 +205,169 @@
         }
 
         @media print {
-            body {
-                background: white;
+            /* Hide browser default headers and footers */
+            @page {
+                margin: 0.5cm;
+                size: landscape;
             }
 
-            .back-button, .filters-section, .print-button {
+            /* Reset body and page styles */
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Hide all unnecessary elements */
+            .sidebar,
+            .header,
+            .back-button,
+            .filters-section,
+            .print-button,
+            .report-info,
+            .accountability-info,
+            .export-buttons,
+            .export-fab,
+            .fab-container,
+            button,
+            .btn,
+            nav,
+            footer,
+            .no-print,
+            .dashboard-header,
+            .header-left,
+            .header-right,
+            .navigation,
+            .brand-container,
+            .notifications,
+            .user-avatar,
+            .user-info,
+            .fab-print,
+            .fab-pdf,
+            .fab-excel,
+            .sidebar *,
+            .header *,
+            .dashboard-header *,
+            .header-left *,
+            .header-right *,
+            .navigation *,
+            .notifications *,
+            .user-profile *,
+            .user-avatar *,
+            .user-info *,
+            .fab *,
+            .fab-print *,
+            .fab-pdf *,
+            .fab-excel * {
                 display: none !important;
             }
 
+            /* Show only content area */
+            .container {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .details {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+
             .ppes-content {
-                padding: 0;
+                padding: 10px !important;
+                margin: 0 !important;
+            }
+
+            /* Style the header for print */
+            .ppes-header {
+                text-align: center;
+                margin-bottom: 15px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid #000;
+                page-break-after: avoid;
+            }
+
+            .ppes-header h1 {
+                font-size: 13px;
+                margin: 2px 0;
+                color: #000;
+            }
+
+            .ppes-header h2 {
+                font-size: 11px;
+                margin: 3px 0;
+                color: #000;
+            }
+
+            /* Show report info for print */
+            .report-info {
+                display: block !important;
+                margin: 20px 0;
+                padding: 15px;
+                background: white !important;
+                border-radius: 0 !important;
+                page-break-after: avoid;
+            }
+
+            .report-info p {
+                margin: 0 0 10px 0;
+                font-size: 12px;
+                color: #000;
+                font-weight: bold;
+            }
+
+            .header-grid {
+                display: grid !important;
+                grid-template-columns: repeat(4, 1fr) !important;
+                gap: 20px !important;
+                text-align: center !important;
+            }
+
+            .header-grid div p {
+                margin: 0;
+                font-size: 12px;
+                color: #000;
+            }
+
+            /* Style the table for print */
+            .report-table-container {
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+
+            .report-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 7px;
+                page-break-inside: auto;
+            }
+
+            .report-table thead {
+                display: table-header-group;
+            }
+
+            .report-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
             }
 
             .report-table th,
             .report-table td {
                 border: 1px solid #000 !important;
-                padding: 4px;
-                font-size: 10px;
+                padding: 4px 2px !important;
+                font-size: 8px !important;
+                text-align: center;
+            }
+
+            .report-table th {
+                background-color: #f0f0f0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                font-weight: 600;
             }
         }
     </style>
@@ -240,7 +386,7 @@
 
             <div class="ppes-header">
                 <h1>INVENTORY AND INSPECTION REPORT OF UNSERVICEABLE PROPERTY</h1>
-                <h2>(ATI-RTC I, Sta. Barbara, Pangasinan)</h2>
+                <h2>(ATI-RTC I)</h2>
             </div>
             <div class="report-info">
                 <p><strong>As of {!! isset($header['as_of']) && trim($header['as_of']) !== '' ? e($header['as_of']) : '<span style="border-bottom:1px solid #000;padding:0 50px;display:inline-block;">&nbsp;</span>' !!}</strong></p>
@@ -279,6 +425,51 @@
                     </div>
                 </div>
 
+                {{-- Data filters --}}
+                <div class="filters-section">
+                    <form method="GET" action="{{ route('client.report.ppes') }}" class="filters-form">
+                        <div class="filter-group">
+                            <label>Condition</label>
+                            <select name="condition">
+                                <option value="">All Conditions</option>
+                                <option value="Serviceable" {{ request('condition') == 'Serviceable' ? 'selected' : '' }}>Serviceable</option>
+                                <option value="Unserviceable" {{ request('condition') == 'Unserviceable' ? 'selected' : '' }}>Unserviceable</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Date From</label>
+                            <input type="date" name="date_from" value="{{ request('date_from') }}">
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Date To</label>
+                            <input type="date" name="date_to" value="{{ request('date_to') }}">
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Classification</label>
+                            <select name="classification">
+                                <option value="">All Classifications</option>
+                                @foreach($classifications as $class)
+                                    <option value="{{ $class }}" {{ request('classification') == $class ? 'selected' : '' }}>
+                                        {{ $class }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div class="filter-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Apply Filters
+                            </button>
+                            <a href="{{ route('client.report.ppes') }}" class="btn btn-secondary">
+                                <i class="fas fa-redo"></i> Reset
+                            </a>
+                        </div>
+                    </form>
+                </div>
+
                 {{-- Header input form --}}
                 <div class="filters-section" style="margin-top:20px;">
                     <form method="get" class="filters-form">
@@ -290,27 +481,27 @@
 
                         <div class="filter-group">
                             <label>As of</label>
-                            <input type="date" name="as_of" value="{{ request('as_of') ?? now()->format('Y-m-d') }}">
+                            <input type="date" name="as_of" value="{{ request('as_of') }}">
                         </div>
                         <div class="filter-group">
                             <label>Entity Name</label>
-                            <input type="text" name="entity_name" value="{{ request('entity_name') ?? '' }}">
+                            <input type="text" name="entity_name" value="{{ request('entity_name') }}">
                         </div>
                         <div class="filter-group">
                             <label>Fund Cluster</label>
-                            <input type="text" name="fund_cluster" value="{{ request('fund_cluster') ?? '' }}">
+                            <input type="text" name="fund_cluster" value="{{ request('fund_cluster') }}">
                         </div>
                         <div class="filter-group">
                             <label>Accountable Person</label>
-                            <input type="text" name="accountable_person" value="{{ request('accountable_person') ?? '' }}">
+                            <input type="text" name="accountable_person" value="{{ request('accountable_person') }}">
                         </div>
                         <div class="filter-group">
                             <label>Position</label>
-                            <input type="text" name="position" value="{{ request('position') ?? '' }}">
+                            <input type="text" name="position" value="{{ request('position') }}">
                         </div>
                         <div class="filter-group">
                             <label>Office</label>
-                            <input type="text" name="office" value="{{ request('office') ?? '' }}">
+                            <input type="text" name="office" value="{{ request('office') }}">
                         </div>
                         <div class="filter-group">
                             <button type="submit" class="btn btn-primary">Apply Header</button>

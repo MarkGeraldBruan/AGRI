@@ -28,7 +28,7 @@
 <body>
     <div class="header">
         <h1>INVENTORY AND INSPECTION REPORT OF UNSERVICEABLE PROPERTY</h1>
-        <h2>(ATI-RTC I, Sta. Barbara, Pangasinan)</h2>
+        <h2>(ATI-RTC I)</h2>
     </div>
 
     <div class="report-info">
@@ -131,20 +131,20 @@
                     <td>{{ $item->particulars_articles }}</td>
                     <td>{{ $item->property_no }}</td>
                     <td>{{ $item->qty }}</td>
-                    <td>&#8369; {{ number_format((float) ($item->unit_cost ?? 0), 2) }}</td>
-                    <td>&#8369; {{ number_format((float) ($item->total_cost ?? 0), 2) }}</td>
-                    <td>&#8369; {{ number_format((float) ($item->accumulated_depreciation ?? 0), 2) }}</td>
-                    <td>&#8369; {{ number_format((float) ($item->accumulated_impairment_losses ?? 0), 2) }}</td>
-                    <td>&#8369; {{ number_format((float) ($item->carrying_amount ?? 0), 2) }}</td>
+                    <td>{{ number_format((float) ($item->unit_cost ?? 0), 2) }}</td>
+                    <td>{{ number_format((float) ($item->total_cost ?? 0), 2) }}</td>
+                    <td>{{ number_format((float) ($item->accumulated_depreciation ?? 0), 2) }}</td>
+                    <td>{{ number_format((float) ($item->accumulated_impairment_losses ?? 0), 2) }}</td>
+                    <td>{{ number_format((float) ($item->carrying_amount ?? 0), 2) }}</td>
                     <td>{{ $item->remarks }}</td>
                     <td>{{ $item->sale }}</td>
                     <td>{{ $item->transfer }}</td>
                     <td>{{ $item->destruction }}</td>
                     <td>{{ $item->others }}</td>
                     <td>{{ $item->total_disposal }}</td>
-                    <td>&#8369; {{ number_format((float) ($item->appraised_value ?? 0), 2) }}</td>
+                    <td>{{ number_format((float) ($item->appraised_value ?? 0), 2) }}</td>
                     <td>{{ $item->or_no }}</td>
-                    <td>&#8369; {{ number_format((float) ($item->amount ?? 0), 2) }}</td>
+                    <td>{{ number_format((float) ($item->amount ?? 0), 2) }}</td>
                 </tr>
                 @empty
                 <tr>

@@ -306,9 +306,15 @@ body {
 }
 
 /* Parent dropdown item when open */
-.navigation ul li.dropdown.open > a {
-    background: var(--hover-bg);
-    color: var(--text-primary);
+.navigation ul li.dropdown.open > a,
+.navigation ul li.dropdown.active > a {
+    background: var(--active-bg) !important;
+    color: var(--active-text) !important;
+}
+
+/* Make Generate Cards text white when active */
+.navigation ul li.dropdown.active > a .title {
+    color: var(--active-text);
 }
 
 /* Keep the hovered state for active dropdown parent */
@@ -345,6 +351,11 @@ body {
 /* Ensure dropdown items are not blocked by other elements */
 .navigation ul li.dropdown .dropdown-menu {
     z-index: 10;
+}
+
+/* Ensure active dropdown menu items have white text */
+.navigation ul li.dropdown .dropdown-menu li.active a .title {
+    color: var(--active-text);
 }
 
 /* Fix any potential overlay issues */

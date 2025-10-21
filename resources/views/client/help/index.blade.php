@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Help & Support</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/supplies.css') }}">
     <link rel="stylesheet" href="{{ asset('css/help.css') }}">
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
@@ -15,12 +16,15 @@
 <body>
         <div class="container">
         @include('layouts.core.sidebar')
-        
+
         <div class="details">
             @include('layouts.core.header')
-            <div class="help-container">
-                <div class="help-header">
-                    <h1><ion-icon name="help-circle-outline"></ion-icon> Help & Support</h1>
+            <div class="supplies-container">
+                <div class="supplies-header">
+                    <h1 class="supplies-title">
+                        <i class="fas fa-question-circle"></i>
+                        Help & Support
+                    </h1>
                     @if(!auth()->user()->isAdmin())
                     <a href="{{ route('client.help.create') }}" class="btn btn-primary">
                         <ion-icon name="add-outline"></ion-icon> Create Request
@@ -32,7 +36,7 @@
                     <div class="alert alert-success">{{ session('success') }}</div>
                 @endif
 
-                <div class="help-requests">
+                <div class="supplies-table-container">
                     @if($helpRequests->count() > 0)
                         @foreach($helpRequests as $request)
                         <div class="help-card">
@@ -43,6 +47,9 @@
                                         <span class="user-name">by {{ $request->user->name }}</span>
                                     @endif
                                     <span class="help-date">{{ $request->created_date }}</span>
+                                    @if($request->updated_at != $request->created_at)
+                                        <br><span class="help-date" style="font-size: 11px; color: #666;">Updated: {{ $request->updated_date }}</span>
+                                    @endif
                                 </div>
                                 <div class="help-badges">
                                     <span class="badge badge-{{ $request->priority_color }}">{{ ucfirst($request->priority) }}</span>
@@ -71,11 +78,11 @@
                         @endforeach
                     @else
                         <div class="empty-state">
-                            <ion-icon name="help-circle-outline"></ion-icon>
+                            <i class="fas fa-question-circle"></i>
                             <h3>No help requests found</h3>
                             @if(!auth()->user()->isAdmin())
                                 <p>Submit your first help request to get started.</p>
-                                <a href="{{ route('client.help.create') }}" class="btn btn-primary">Submit Request</a>
+                                <a href="{{ route('client.help.create') }}" class="btn btn-success">Submit Request</a>
                             @else
                                 <p>No help requests have been submitted yet.</p>
                             @endif

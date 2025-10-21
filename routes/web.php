@@ -86,7 +86,13 @@ Route::prefix('client')->middleware('auth:web')->group(function(){
         'index' => 'client.propertycard.index'
     ]);
     
-    // Announcement routes with bulk actions
+    
+    Route::post('announcement/{id}/reserve', [AnnouncementController::class, 'reserveSupplies'])
+        ->name('client.announcement.reserve');
+
+    Route::post('announcement/{id}/stock-out', [AnnouncementController::class, 'stockOutSupplies'])
+        ->name('client.announcement.stock-out');
+
     Route::post('announcement/bulk-publish', [AnnouncementController::class, 'bulkPublish'])
         ->name('client.announcement.bulk-publish');
 
@@ -105,7 +111,6 @@ Route::prefix('client')->middleware('auth:web')->group(function(){
         'update' => 'client.announcement.update',
         'destroy' => 'client.announcement.destroy'
     ]);
-
     // Help routes 
     Route::resource('help', HelpController::class)->names([
         'index' => 'client.help.index',

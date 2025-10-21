@@ -126,9 +126,9 @@
         .report-table th,
         .report-table td {
             border: 1px solid #ccc;
-            padding: 10px;
+            padding: 8px 6px;
             text-align: center;
-            font-size: 14px;
+            font-size: 11px;
         }
 
         .report-table th {
@@ -215,8 +215,9 @@
         .recap th,
         .recap td {
             border: 1px solid #ccc;
-            padding: 8px;
+            padding: 8px 6px;
             text-align: center;
+            font-size: 11px;
         }
 
         .recap th {
@@ -240,30 +241,180 @@
         }
 
         @media print {
-            body {
-                background: white;
+            /* Hide browser default headers and footers */
+            @page {
+                margin: 0.5cm;
+                size: auto;
             }
 
-            .back-button, .filters-section, .print-button {
+            /* Reset body and page styles */
+            body {
+                background: white !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Hide all unnecessary elements */
+            .sidebar,
+            .header,
+            .back-button,
+            .filters-section,
+            .print-button,
+            .report-info,
+            .export-buttons,
+            .export-fab,
+            .fab-container,
+            button,
+            .btn,
+            nav,
+            footer,
+            .no-print,
+            .dashboard-header,
+            .header-left,
+            .header-right,
+            .navigation,
+            .brand-container,
+            .notifications,
+            .user-avatar,
+            .user-info,
+            .fab-print,
+            .fab-pdf,
+            .fab-excel,
+            .sidebar *,
+            .header *,
+            .dashboard-header *,
+            .header-left *,
+            .header-right *,
+            .navigation *,
+            .notifications *,
+            .user-profile *,
+            .user-avatar *,
+            .user-info *,
+            .fab *,
+            .fab-print *,
+            .fab-pdf *,
+            .fab-excel * {
                 display: none !important;
             }
 
+            /* Show only content area */
+            .container {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            .details {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+            }
+
             .rsmi-content {
-                padding: 0;
+                padding: 10px !important;
+                margin: 0 !important;
+            }
+
+            /* Style the header for print */
+            .report-header {
+                text-align: center;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #000;
+                page-break-after: avoid;
+            }
+
+            .report-header h1 {
+                font-size: 14px;
+                margin: 2px 0;
+                color: #000;
+            }
+
+            .report-header p {
+                font-size: 12px;
+                margin: 3px 0;
+            }
+
+            /* Style the table for print */
+            .report-table-container {
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+
+            .report-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 10px;
+                page-break-inside: auto;
+            }
+
+            .report-table thead {
+                display: table-header-group;
+            }
+
+            .report-table tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
             }
 
             .report-table th,
             .report-table td {
                 border: 1px solid #000 !important;
-                padding: 5px;
-                font-size: 12px;
+                padding: 4px 2px !important;
+                font-size: 8px !important;
+                text-align: center;
+            }
+
+            .report-table th {
+                background-color: #f0f0f0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                font-weight: 600;
+            }
+
+            /* Style recap tables for print */
+            .recap-container {
+                display: flex;
+                justify-content: space-between;
+                gap: 20px;
+                margin-top: 20px;
+                page-break-inside: avoid;
+            }
+
+            .recap {
+                width: 48%;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+
+            .recap p {
+                font-size: 11px;
+                font-weight: 600;
+                margin-bottom: 5px;
+            }
+
+            .recap table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 10px;
             }
 
             .recap th,
             .recap td {
                 border: 1px solid #000 !important;
-                padding: 5px;
-                font-size: 12px;
+                padding: 4px 2px !important;
+                font-size: 8px !important;
+                text-align: center;
+            }
+
+            .recap th {
+                background-color: #f8f9fa !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                font-weight: 600;
             }
         }
     </style>
@@ -282,7 +433,7 @@
 
             <div class="report-header">
                 <h1>Republic of the Philippines</h1>
-                <h1>ATI-RTC I</h1>
+                <h1>{!! isset($header['entity_name']) && trim($header['entity_name']) !== '' ? e($header['entity_name']) : '______' !!}</h1>
                 <h1>Report of Supplies and Materials Issued</h1>
                 <p>For the Month of {!! isset($header['as_of']) && trim($header['as_of']) !== '' ? e($header['as_of']) : '<span style="border-bottom:1px solid #000;padding:0 80px;display:inline-block;">&nbsp;</span>' !!}</p>
                 <p>Fund Cluster: {!! isset($header['fund_cluster']) && trim($header['fund_cluster']) !== '' ? e($header['fund_cluster']) : '<span style="border-bottom:1px solid #000;padding:0 40px;display:inline-block;">&nbsp;</span>' !!}</p>
@@ -335,6 +486,7 @@
                 </div>
             </div>
 
+            {{-- Data filters --}}
             <div class="filters-section">
                 <form method="GET" action="{{ route('client.report.rsmi') }}" class="filters-form">
                     <div class="filter-group">
@@ -358,8 +510,12 @@
                         </select>
                     </div>
                     <div class="filter-actions">
-                        <button type="submit" class="btn btn-primary">Filter</button>
-                        <a href="{{ route('client.report.rsmi') }}" class="btn btn-secondary">Clear</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-filter"></i> Apply Filters
+                        </button>
+                        <a href="{{ route('client.report.rsmi') }}" class="btn btn-secondary">
+                            <i class="fas fa-redo"></i> Reset
+                        </a>
                     </div>
                 </form>
             </div>

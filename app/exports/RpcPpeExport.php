@@ -45,36 +45,32 @@ class RpcPpeExport implements FromArray, WithEvents
         $equipment = $query->get();
 
         // Build header values from request
-        $entityName = $this->request->query('entity_name', 'Agricultural Training Institute-RTC I');
-        $accountablePerson = $this->request->query('accountable_person', 'Franklin A. Salcedo');
-        $position = $this->request->query('position', 'Supply and Property Officer');
-        $office = $this->request->query('office', 'ATI-RTC I');
-        $fundCluster = $this->request->query('fund_cluster', '01');
+        $entityName = $this->request->query('entity_name') ?: '';
+        $accountablePerson = $this->request->query('accountable_person') ?: '';
+        $position = $this->request->query('position') ?: '';
+        $office = $this->request->query('office') ?: '';
+        $fundCluster = $this->request->query('fund_cluster') ?: '';
         $asOfDate = $this->request->query('as_of');
-        if ($asOfDate) {
-            $formattedDate = \Carbon\Carbon::parse($asOfDate)->format('F d, Y');
-        } else {
-            $formattedDate = now()->format('F d, Y');
-        }
+        $formattedDate = $asOfDate ? \Carbon\Carbon::parse($asOfDate)->format('F d, Y') : '';
 
         $data = [];
 
         // Header rows
         $data[] = ['Annex A', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 1
         $data[] = ['REPORT ON THE PHYSICAL COUNT OF PROPERTY PLANT AND EQUIPMENT', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 2
-        $data[] = ['As of ' . $formattedDate, '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 3
+        $data[] = $formattedDate ? ['As of ' . $formattedDate, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 3
         $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 4)
-        $data[] = ['Entity Name: ' . $entityName, '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 5
-        $data[] = [$accountablePerson, '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 6
+        $data[] = $entityName ? ['Entity Name: ' . $entityName, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 5
+        $data[] = $accountablePerson ? [$accountablePerson, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 6
         $data[] = ['(Name of Accountable Officer)', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 7
         $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 8)
-        $data[] = [$position, '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 9
+        $data[] = $position ? [$position, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 9
         $data[] = ['(Designation)', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 10
         $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 11)
-        $data[] = [$office, '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 12
+        $data[] = $office ? [$office, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 12
         $data[] = ['(Station)', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 13
         $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 14)
-        $data[] = ['Fund Cluster : ' . $fundCluster, '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 15
+        $data[] = $fundCluster ? ['Fund Cluster : ' . $fundCluster, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 15
         $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 16)
         $data[] = [
             'Classification',
@@ -101,7 +97,7 @@ class RpcPpeExport implements FromArray, WithEvents
                 $item->description ?: '-',
                 $item->property_number,
                 $item->unit_of_measurement,
-                (float) $item->unit_value,
+                number_format((float) $item->unit_value, 2),
                 $item->acquisition_date ? $item->acquisition_date->format('M-d-Y') : '-',
                 1, // Quantity per Property Card
                 1, // Quantity per Physical Count
@@ -171,3 +167,8 @@ class RpcPpeExport implements FromArray, WithEvents
                 $sheet->getColumnDimension('L')->setWidth(15); // Person Responsible
                 $sheet->getColumnDimension('M')->setWidth(15); // Responsibility Center
                 $sheet->getColumnDimension('N')->setWidth(12); // Condition of Properties
+            },
+
+        ];
+    }
+}
