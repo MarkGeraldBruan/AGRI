@@ -43,14 +43,19 @@
                                     Stock In
                                 </a>
                             @endif
-                            
+
                             @if(auth()->user()->hasPermission('stock_out'))
                                 <a href="{{ route('client.stockcard.stock-out') }}" class="btn btn-danger">
                                     <i class="fas fa-arrow-up"></i>
                                     Stock Out
                                 </a>
                             @endif
-                            
+
+                            <a href="{{ route('client.stockcard.export.all.excel', request()->query()) }}" class="btn btn-primary">
+                                <i class="fas fa-download"></i>
+                                Export
+                            </a>
+
                             @if(!auth()->user()->hasPermission('stock_in') && !auth()->user()->hasPermission('stock_out'))
                                 <div class="no-permission-message">
                                     <i class="fas fa-lock"></i>
@@ -237,5 +242,7 @@
             font-size: 16px;
         }
     </style>
+
+    @include('layouts.core.footer')
 </body>
 </html>

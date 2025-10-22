@@ -47,7 +47,7 @@
                         </div>
                         
                         <div class="action-buttons">
-                            <a href="{{ route('equipment.export') }}" class="btn btn-primary">
+                            <a href="{{ route('equipment.export', request()->query()) }}" class="btn btn-primary">
                                 <i class="fas fa-download"></i>
                                 Export
                             </a>
@@ -212,5 +212,7 @@
             });
         });
     </script>
+
+    @include('layouts.core.footer')
 </body>
 </html>

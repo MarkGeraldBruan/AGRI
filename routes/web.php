@@ -72,11 +72,13 @@ Route::prefix('client')->middleware('auth:web')->group(function(){
     Route::prefix('stockcard')->name('client.stockcard.')->group(function () {
         Route::get('/', [StockCardController::class, 'index'])->name('index');
         Route::get('/show/{id}', [StockCardController::class, 'show'])->name('show');
-        
+        Route::get('/export/excel/{id}', [StockCardController::class, 'exportExcel'])->name('export.excel');
+        Route::get('/export/all/excel', [StockCardController::class, 'exportAllStockCards'])->name('export.all.excel');
+
         // Stock In routes
         Route::get('/stock-in', [StockCardController::class, 'stockIn'])->name('stock-in');
         Route::post('/stock-in', [StockCardController::class, 'processStockIn'])->name('stock-in.process');
-        
+
         // Stock Out routes
         Route::get('/stock-out', [StockCardController::class, 'stockOut'])->name('stock-out');
         Route::post('/stock-out', [StockCardController::class, 'processStockOut'])->name('stock-out.process');
@@ -85,6 +87,7 @@ Route::prefix('client')->middleware('auth:web')->group(function(){
     Route::resource('propertycard', PropertyCardController::class)->names([
         'index' => 'client.propertycard.index'
     ]);
+    Route::get('propertycard/export/excel', [EquipmentController::class, 'export'])->name('client.propertycard.export.excel');
     
     
     Route::post('announcement/{id}/reserve', [AnnouncementController::class, 'reserveSupplies'])

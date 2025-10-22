@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 
 <div class="welcome-section">
-    <h2>Welcome to the Dashboard</h2>
+    <h2><strong>Welcome to the Dashboard</strong></h2>
 </div>
 
 @if(!auth()->user()->isAdmin())
@@ -670,3 +670,5 @@ document.addEventListener('keydown', function(e) {
     }
 });
 </script>
+
+@include('layouts.core.footer')

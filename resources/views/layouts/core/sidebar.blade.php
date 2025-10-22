@@ -7,7 +7,7 @@
                 <span class="brand-container">
                     <img src="{{ asset('assets/img/atirtc1logo.jpg') }}" alt="AGRISUPPLY Logo" class="brand-logo">
                 </span>
-                <span class="title">ATI-RTC-1</span>
+                <span class="title">ATI-RTC 1</span>
             </a>
         </li>
         <li class="{{ Request::is('client/dashboard*') || Request::is('home') || Request::is('/') ? 'hovered' : '' }}">

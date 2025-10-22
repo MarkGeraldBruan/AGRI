@@ -281,5 +281,7 @@
             }
         }
     </script>
+
+    @include('layouts.core.footer')
 </body>
-</html
+</html>

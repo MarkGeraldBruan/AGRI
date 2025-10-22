@@ -173,50 +173,113 @@ class SuppliesController extends Controller
     /**
      * Export supplies data
      */
-    public function export()
+    public function export(Request $request)
     {
         // Check read permission for export
         if (!auth()->user()->hasPermission('read')) {
             abort(403, 'You do not have permission to export supplies.');
         }
 
-        $supplies = Supplies::all();
-        
-        $filename = 'supplies_' . date('Y-m-d') . '.csv';
-        
-        $headers = [
-            'Content-Type' => 'text/csv',
-            'Content-Disposition' => "attachment; filename=\"$filename\"",
-        ];
+        $query = Supplies::query();
 
-        return response()->stream(function() use ($supplies) {
-            $handle = fopen('php://output', 'w');
-            
-            // CSV headers
-            fputcsv($handle, [
-                'ID', 'Name', 'Description', 'Quantity', 'Unit Price', 'Unit', 
-                'Category', 'Supplier', 'Purchase Date', 'Minimum Stock', 'Total Value', 'Notes'
-            ]);
-            
-            // CSV data
-            foreach ($supplies as $supply) {
-                fputcsv($handle, [
-                    $supply->id,
-                    $supply->name,
-                    $supply->description,
-                    $supply->quantity,
-                    $supply->unit_price,
-                    $supply->unit,
-                    $supply->category,
-                    $supply->supplier,
-                    $supply->purchase_date?->format('Y-m-d'),
-                    $supply->minimum_stock,
-                    $supply->total_value,
-                    $supply->notes
-                ]);
+        // Apply the same filters as the index method
+        if ($request->has('search') && !empty($request->search)) {
+            $query->search($request->search);
+        }
+
+        if ($request->has('category') && !empty($request->category)) {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->has('low_stock') && $request->low_stock == '1') {
+            $query->lowStock();
+        }
+
+        // Apply the same sorting as the index method
+        $sortBy = $request->get('sort_by', 'name');
+        $sortDirection = $request->get('sort_direction', 'asc');
+        $query->orderBy($sortBy, $sortDirection);
+
+        // If no filters are applied (All), export only current page
+        // If filters are applied, export all matching
+        if ($request->has('search') || $request->has('category') || $request->has('low_stock')) {
+            // Export all matching the filters
+            $supplies = $query->get();
+        } else {
+            // Export only current page when no filters (All)
+            $perPage = 15;
+            $currentPage = $request->get('page', 1);
+            $offset = ($currentPage - 1) * $perPage;
+            $supplies = $query->skip($offset)->take($perPage)->get();
+        }
+
+        $data = [];
+
+        // Header row for supply details
+        $data[] = ['ID', 'Name', 'Description', 'Quantity', 'Unit Price', 'Unit', 'Category', 'Supplier', 'Purchase Date', 'Minimum Stock', 'Total Value', 'Notes'];
+
+        // Add supply data
+        foreach ($supplies as $supply) {
+            $data[] = [
+                $supply->id,
+                $supply->name,
+                $supply->description ?: 'N/A',
+                $supply->quantity,
+                $supply->unit_price,
+                $supply->unit,
+                $supply->category ?: 'Uncategorized',
+                $supply->supplier ?: 'N/A',
+                $supply->purchase_date ? $supply->purchase_date->format('F d, Y') : 'N/A',
+                $supply->minimum_stock,
+                $supply->quantity * $supply->unit_price,
+                $supply->notes ?: 'N/A'
+            ];
+        }
+
+        return \Maatwebsite\Excel\Facades\Excel::download(new class($data) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithEvents {
+            protected $data;
+
+            public function __construct($data)
+            {
+                $this->data = $data;
             }
-            
-            fclose($handle);
-        }, 200, $headers);
+
+            public function array(): array
+            {
+                return $this->data;
+            }
+
+            public function registerEvents(): array
+            {
+                return [
+                    \Maatwebsite\Excel\Events\AfterSheet::class => function (\Maatwebsite\Excel\Events\AfterSheet $event) {
+                        $sheet = $event->sheet->getDelegate();
+
+                        // Header styling
+                        $sheet->getStyle('A1:L1')->getFont()->setBold(true);
+                        $sheet->getStyle('A1:L1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+                        $sheet->getStyle('A1:L1')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+
+                        // Column widths
+                        $sheet->getColumnDimension('A')->setWidth(8);  // ID
+                        $sheet->getColumnDimension('B')->setWidth(25); // Name
+                        $sheet->getColumnDimension('C')->setWidth(30); // Description
+                        $sheet->getColumnDimension('D')->setWidth(10); // Quantity
+                        $sheet->getColumnDimension('E')->setWidth(12); // Unit Price
+                        $sheet->getColumnDimension('F')->setWidth(8);  // Unit
+                        $sheet->getColumnDimension('G')->setWidth(15); // Category
+                        $sheet->getColumnDimension('H')->setWidth(20); // Supplier
+                        $sheet->getColumnDimension('I')->setWidth(15); // Purchase Date
+                        $sheet->getColumnDimension('J')->setWidth(12); // Minimum Stock
+                        $sheet->getColumnDimension('K')->setWidth(12); // Total Value
+                        $sheet->getColumnDimension('L')->setWidth(30); // Notes
+
+                        // Borders for data
+                        $highestRow = $sheet->getHighestRow();
+                        $sheet->getStyle("A1:L{$highestRow}")->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+                    }
+                ];
+            }
+        }, 'supplies_' . date('Y-m-d') . '.xlsx');
     }
 }

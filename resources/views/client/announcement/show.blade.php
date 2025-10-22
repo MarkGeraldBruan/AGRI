@@ -643,5 +643,7 @@
             });
         }, 5000);
     </script>
+
+    @include('layouts.core.footer')
 </body>
 </html>

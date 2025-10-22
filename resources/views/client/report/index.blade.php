@@ -22,7 +22,7 @@
             flex-direction: column;
             gap: 20px;
             border-radius: 15px;
-            min-height: calc(80vh - 80px); /* Adjust based on your header height */
+            min-height: 100vh; /* Extend green background to full viewport height */
         }
 
         .reports-title {
@@ -180,5 +180,7 @@
             });
         });
     </script>
+
+    @include('layouts.core.footer')
 </body>
 </html>

@@ -21,11 +21,20 @@
             <div class="supplies-container">
                 <!-- Header Section -->
                 <div class="form-header">
-                    <a href="{{ route('client.stockcard.index') }}" class="back-button">
-                        <i class="fas fa-arrow-left"></i>
-                        Back to Stock Card
-                    </a>
-                    
+                    <div class="header-top">
+                        <a href="{{ route('client.stockcard.index') }}" class="back-button">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Stock Card
+                        </a>
+
+                        <div class="action-buttons">
+                            <a href="{{ route('client.stockcard.export.excel', $supply->id) }}" class="btn btn-primary">
+                                <i class="fas fa-download"></i>
+                                Export
+                            </a>
+                        </div>
+                    </div>
+
                     <div class="supply-info-header">
                         <div class="supply-title">
                             <h2>#{{ str_pad($supply->id, 4, '0', STR_PAD_LEFT) }} - {{ $supply->name }}</h2>
@@ -45,9 +54,11 @@
                                 </div>
                             @endif
                         </div>
+
                     </div>
-                    
-                    <div class="supply-details">
+                </div>
+
+                <div class="supply-details">
                         <div class="detail-item">
                             <label>Category:</label>
                             <span>{{ $supply->category ?: 'Uncategorized' }}</span>
@@ -351,6 +362,13 @@
             }
         }
 
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
         @media (max-width: 768px) {
             .supplies-header {
                 flex-direction: column;
@@ -377,6 +395,12 @@
             .stock-card-table thead th,
             .stock-card-table tbody td {
                 padding: 6px 4px;
+            }
+
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
             }
         }
     </style>

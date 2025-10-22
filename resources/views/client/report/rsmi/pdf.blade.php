@@ -20,11 +20,15 @@
         .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .table th, .table td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px; }
         .table th { background-color: #f0f0f0; font-weight: bold; }
-        .recap-container { display: flex; justify-content: space-between; margin-top: 20px; }
-        .recap { width: 48%; }
-        .recap table { width: 100%; border-collapse: collapse; font-size: 10px; }
-        .recap th, .recap td { border: 1px solid #000; padding: 4px; text-align: center; }
-        .recap th { background-color: #f0f0f0; }
+        .recap-container { width: 100%; margin-top: 20px; }
+        .recap-table { width: 100%; border-collapse: collapse; }
+        .recap-table td { vertical-align: top; padding: 0 10px; }
+        .recap-table td:first-child { width: 50%; }
+        .recap { width: 100%; }
+        .recap table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
+        .recap th, .recap td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px; height: 20px; }
+        .recap th { background-color: #f0f0f0; font-weight: bold; }
+        .recap p { margin: 5px 0; font-weight: bold; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -79,44 +83,52 @@
     </table>
 
     <div class="recap-container">
-        <div class="recap">
-            <p><strong>Recapitulation:</strong></p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Stock No.</th>
-                        <th>Quantity</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($recapLeft as $item)
-                        <tr>
-                            <td>{{ $item['stock_no'] }}</td>
-                            <td>{{ $item['quantity'] }}</td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <div class="recap">
-            <p><strong>Recapitulation:</strong></p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Unit Cost</th>
-                        <th>Total Cost</th>
-                        <th>UACS Object Code</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{{ number_format($recapRight['unit_cost'], 2) }}</td>
-                        <td>{{ number_format($recapRight['total_cost'], 2) }}</td>
-                        <td>{{ $recapRight['uacs_code'] }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <table class="recap-table">
+            <tr>
+                <td>
+                    <div class="recap">
+                        <p><strong>Recapitulation:</strong></p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Stock No.</th>
+                                    <th>Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recapLeft as $item)
+                                    <tr>
+                                        <td>{{ $item['stock_no'] }}</td>
+                                        <td>{{ $item['quantity'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+                <td>
+                    <div class="recap">
+                        <p><strong>Recapitulation:</strong></p>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Unit Cost</th>
+                                    <th>Total Cost</th>
+                                    <th>UACS Object Code</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ number_format($recapRight['unit_cost'], 2) }}</td>
+                                    <td>{{ number_format($recapRight['total_cost'], 2) }}</td>
+                                    <td>{{ $recapRight['uacs_code'] }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 </body>
 </html>

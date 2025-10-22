@@ -28,7 +28,8 @@
     align-items: center;
     position: relative;
     overflow-x: hidden;
-    padding: 20px 0;
+    overflow-y: auto;
+    padding: 20px 0 120px 0;
 }
 </style>
 
@@ -39,7 +40,7 @@
     <div class="header-section">
         <div class="logo">
             @if(file_exists(public_path('assets/img/atirtc1logo.jpg')))
-                <img src="{{ asset('assets/img/moskov-malakas-system.png') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">
+                <img src="{{ asset('assets/img/sample.png') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">
                 <a style="color: white">X</a>
                 <img src="{{ asset('assets/img/atirtc1logo.jpg') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">
             @else
@@ -214,5 +215,7 @@
     </script>
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+    @include('layouts.core.footer')
 </body>
 </html>

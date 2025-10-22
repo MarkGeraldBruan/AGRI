@@ -1,11 +1,18 @@
-# TODO for RPCI Report PDF Print Modifications
+# TODO: Move Edit and Back Buttons to Left Side on Help Show View
 
-- [x] Edit resources/views/client/report/rpci/pdf.blade.php to add @media print CSS styles to remove body margin and padding for print media, ensuring only header, accountability section, and table are visible in PDF output.
-- [x] Edit resources/views/client/report/rpci/index.blade.php to hide unnecessary elements like Monitoring Management System, Agricultural Training Institute - Regional Training Center 1, user profile, and export icons in print view.
-- [x] Edit resources/views/client/report/rpci/index.blade.php to show the accountability info (applied header) in print view.
+## Steps to Complete
 
-# TODO for RPC-PPE Report Print Modifications
+1. **Edit Help Show View**:
+   - Restructure `resources/views/client/help/show.blade.php`:
+     - Move the Edit and Back buttons from the `header-actions` div to the left side of the header.
+     - Position them next to the title or in a new header-top section similar to stock card/property card views.
+     - Ensure the buttons are aligned to the left.
 
-- [x] Edit resources/views/client/report/rpc-ppe/index.blade.php to hide the report-info and accountability-info sections and show only the applied-header in print view.
-- [x] Edit resources/views/client/report/rpc-ppe/pdf.blade.php to show the applied header with underscores instead of dynamic data.
-- [x] Apply the same print CSS modifications to all remaining reports (RPC-PPE, RSMI, PPES).
+2. **Verify Layout**:
+   - Run the application and navigate to the help show page.
+   - Ensure the Edit and Back buttons appear on the left side of the header area.
+   - Test responsiveness on mobile devices to confirm proper alignment.
+
+## Progress Tracking
+- [x] Step 1: Edit Help Show View
+- [ ] Step 2: Verify Layout

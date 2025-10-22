@@ -92,6 +92,8 @@
             </div>
         </div>
     </div>
+
+    @include('layouts.core.footer')
 </body>
 </html>
 <script>

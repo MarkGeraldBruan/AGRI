@@ -13,6 +13,7 @@
         .rpci-content {
             padding: 20px;
             background: white;
+            min-height: calc(100vh - 40px);
         }
 
         .report-header {

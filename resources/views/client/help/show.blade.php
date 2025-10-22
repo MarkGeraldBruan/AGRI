@@ -13,33 +13,35 @@
         @include('layouts.core.header')
         <div class="supplies-container">
             <div class="supplies-header">
+                <div class="header-top">
+                    <div class="help-meta">
+                        <span class="badge badge-{{ $helpRequest->priority_color }}">{{ ucfirst($helpRequest->priority) }}</span>
+                        <span class="badge badge-{{ $helpRequest->status_color }}">{{ ucfirst(str_replace('_', ' ', $helpRequest->status)) }}</span>
+                        <div style="display: flex; flex-direction: column; gap: 2px;">
+                            <span class="help-date" style="color: #000; font-weight: 600;">{{ $helpRequest->created_date }}</span>
+                            @if($helpRequest->updated_at != $helpRequest->created_at)
+                                <span class="help-date" style="color: #000; font-weight: 600;">Last updated: {{ $helpRequest->updated_date }}</span>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        @if(auth()->user()->isAdmin() || ($helpRequest->user_id === auth()->id() && $helpRequest->status === 'pending'))
+                            <a href="{{ route('client.help.edit', $helpRequest->id) }}" class="btn btn-warning">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                        @endif
+                        <a href="{{ route('client.help.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                    </div>
+                </div>
                 <h1 class="supplies-title">
                     <i class="fas fa-eye"></i>
                     Help Request Details
                 </h1>
-                <div class="help-meta">
-                    <span class="badge badge-{{ $helpRequest->priority_color }}">{{ ucfirst($helpRequest->priority) }}</span>
-                    <span class="badge badge-{{ $helpRequest->status_color }}">{{ ucfirst(str_replace('_', ' ', $helpRequest->status)) }}</span>
-                    <div style="display: flex; flex-direction: column; gap: 2px;">
-                        <span class="help-date" style="color: #000; font-weight: 600;">{{ $helpRequest->created_date }}</span>
-                        @if($helpRequest->updated_at != $helpRequest->created_at)
-                            <span class="help-date" style="color: #000; font-weight: 600;">Last updated: {{ $helpRequest->updated_date }}</span>
-                        @endif
-                    </div>
-                </div>
             </div>
 
             <div class="help-detail-content">
-                <div class="header-actions" style="display: flex; gap: 10px; margin-bottom: 20px;">
-                    @if(auth()->user()->isAdmin() || ($helpRequest->user_id === auth()->id() && $helpRequest->status === 'pending'))
-                        <a href="{{ route('client.help.edit', $helpRequest->id) }}" class="btn btn-warning">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                    @endif
-                    <a href="{{ route('client.help.index') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back
-                    </a>
-                </div>
 
                 <div class="supplies-table-container">
                     <div class="help-card">
@@ -88,3 +90,37 @@
         </div>
     </div>
 </div>
+    <style>
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .header-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .header-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .header-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+
+    @include('layouts.core.footer')
+</body>
+</html>

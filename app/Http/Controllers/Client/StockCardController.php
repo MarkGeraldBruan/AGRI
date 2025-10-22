@@ -5,7 +5,12 @@ namespace App\Http\Controllers\Client;
 use App\Http\Controllers\Controller;
 use App\Models\Supplies;
 use App\Models\StockMovement;
+use App\Exports\StockCardExport;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Events\AfterSheet;
 
 class StockCardController extends Controller
 {
@@ -14,6 +19,11 @@ class StockCardController extends Controller
      */
     public function index(Request $request)
     {
+        // Handle export request
+        if ($request->has('export') && $request->export === 'excel') {
+            return $this->exportAllStockCards();
+        }
+
         $query = Supplies::query();
 
         // Search functionality
@@ -37,7 +47,7 @@ class StockCardController extends Controller
         $query->orderBy($sortBy, $sortDirection);
 
         $supplies = $query->paginate(15);
-        
+
         // Get unique categories for filter dropdown
         $categories = Supplies::distinct()->pluck('category')->filter();
 
@@ -169,5 +179,114 @@ class StockCardController extends Controller
     public function destroy($id)
     {
         // Not needed for stock card
+    }
+
+    /**
+     * Export stock card to Excel
+     */
+    public function exportExcel($id)
+    {
+        $supply = Supplies::findOrFail($id);
+
+        // Get the same paginated movements that are displayed on the page
+        $movements = StockMovement::forSupply($id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
+
+        return Excel::download(new StockCardExport($id, $supply, $movements), 'stock_card_' . $supply->name . '.xlsx');
+    }
+
+    /**
+     * Export all stock cards to Excel
+     */
+    public function exportAllStockCards(Request $request)
+    {
+        $query = Supplies::query();
+
+        // Apply the same filters as the index method
+        if ($request->has('search') && !empty($request->search)) {
+            $query->search($request->search);
+        }
+
+        if ($request->has('category') && !empty($request->category)) {
+            $query->where('category', $request->category);
+        }
+
+        if ($request->has('low_stock') && $request->low_stock == '1') {
+            $query->lowStock();
+        }
+
+        // Apply the same sorting as the index method
+        $sortBy = $request->get('sort_by', 'name');
+        $sortDirection = $request->get('sort_direction', 'asc');
+        $query->orderBy($sortBy, $sortDirection);
+
+        // If no filters are applied (All), export only current page
+        // If filters are applied, export all matching
+        if ($request->has('search') || $request->has('category') || $request->has('low_stock')) {
+            // Export all matching the filters
+            $supplies = $query->get();
+        } else {
+            // Export only current page when no filters (All)
+            $perPage = 15;
+            $currentPage = $request->get('page', 1);
+            $offset = ($currentPage - 1) * $perPage;
+            $supplies = $query->skip($offset)->take($perPage)->get();
+        }
+
+        $data = [];
+
+        // Header row for supply details
+        $data[] = ['ID', 'Name', 'Description', 'Quantity', 'Unit Price', 'Total Value', 'Category', 'Supplier', 'Purchase Date', 'Minimum Stock', 'Notes'];
+
+        foreach ($supplies as $supply) {
+            $data[] = [
+                $supply->id,
+                $supply->name,
+                $supply->description ?: 'N/A',
+                $supply->quantity,
+                '₱' . number_format($supply->unit_price, 2),
+                '₱' . number_format($supply->quantity * $supply->unit_price, 2),
+                $supply->category ?: 'N/A',
+                $supply->supplier ?: 'N/A',
+                $supply->purchase_date ? $supply->purchase_date->format('F d, Y') : 'N/A',
+                $supply->minimum_stock,
+                $supply->notes ?: 'N/A'
+            ];
+        }
+
+        return Excel::download(new class($data) implements FromArray, WithEvents {
+            protected $data;
+
+            public function __construct($data)
+            {
+                $this->data = $data;
+            }
+
+            public function array(): array
+            {
+                return $this->data;
+            }
+
+            public function registerEvents(): array
+            {
+                return [
+                    AfterSheet::class => function (AfterSheet $event) {
+                        $sheet = $event->sheet->getDelegate();
+                        $sheet->getColumnDimension('A')->setWidth(8);  // ID
+                        $sheet->getColumnDimension('B')->setWidth(25); // Name
+                        $sheet->getColumnDimension('C')->setWidth(30); // Description
+                        $sheet->getColumnDimension('D')->setWidth(10); // Quantity
+                        $sheet->getColumnDimension('E')->setWidth(12); // Unit Price
+                        $sheet->getColumnDimension('F')->setWidth(12); // Total Value
+                        $sheet->getColumnDimension('G')->setWidth(15); // Category
+                        $sheet->getColumnDimension('H')->setWidth(20); // Supplier
+                        $sheet->getColumnDimension('I')->setWidth(15); // Purchase Date
+                        $sheet->getColumnDimension('J')->setWidth(12); // Minimum Stock
+                        $sheet->getColumnDimension('K')->setWidth(30); // Notes
+                    }
+                ];
+            }
+        }, 'all_stock_cards.xlsx');
     }
 }
