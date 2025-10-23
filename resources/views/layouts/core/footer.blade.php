@@ -6,7 +6,7 @@
         <div class="footer-right">
             <div class="footer-group-info">
                 <span class="footer-group">The4mulas</span>
-                <img src="{{ asset('assets/img/the4mulas.png') }}" alt="The4mulas Logo" class="footer-logo">
+                <img src="{{ asset('assets/img/The4mulas.png') }}" alt="The4mulas Logo" class="footer-logo">
             </div>
         </div>
     </div>
@@ -19,8 +19,8 @@
     left: 0;
     right: 0;
     border-top: 1px solid #388e3c;
-    padding: 10px 0;
-    background: white;
+    padding: 3px 0;
+    background: #063b09ff;
     z-index: 1000;
 }
 
@@ -28,13 +28,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    max-width: 1200px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0 20px 0;
 }
 
 .footer-left {
     flex: 1;
+    text-align: left; 
 }
 
 .footer-right {
@@ -50,7 +50,7 @@
 }
 
 .footer-copyright {
-    color: #388e3c;
+    color: white;
     font-size: 14px;
     font-weight: bold;
 }
@@ -62,7 +62,7 @@
 }
 
 .footer-group {
-    color: #388e3c;
+    color: white;
     font-size: 16px;
     font-weight: bold;
 }

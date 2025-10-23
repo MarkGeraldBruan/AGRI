@@ -1,18 +1,23 @@
-# TODO: Move Edit and Back Buttons to Left Side on Help Show View
+# Excel Reports Fix - TODO List
 
-## Steps to Complete
+## Overview
+Fix all Excel export classes to match screen views with proper headers, titles, and table formatting.
 
-1. **Edit Help Show View**:
-   - Restructure `resources/views/client/help/show.blade.php`:
-     - Move the Edit and Back buttons from the `header-actions` div to the left side of the header.
-     - Position them next to the title or in a new header-top section similar to stock card/property card views.
-     - Ensure the buttons are aligned to the left.
+## Export Classes to Fix
+- [ ] PpesExport.php - Change title and restructure header grid
+- [ ] RpcPpeExport.php - Complete header grid structure
+- [ ] RpciExport.php - Add proper header structure and title
+- [ ] RsmiExport.php - Add proper header structure and title
+- [ ] PropertyCardExport.php - Ensure proper formatting
+- [ ] StockCardExport.php - Ensure proper formatting
 
-2. **Verify Layout**:
-   - Run the application and navigate to the help show page.
-   - Ensure the Edit and Back buttons appear on the left side of the header area.
-   - Test responsiveness on mobile devices to confirm proper alignment.
+## Testing
+- [ ] Test each export after fixes
+- [ ] Verify headers match screen layout
+- [ ] Verify table formatting and borders
+- [ ] Verify column widths are optimal
 
-## Progress Tracking
-- [x] Step 1: Edit Help Show View
-- [ ] Step 2: Verify Layout
+## Status
+- RpcPpeExport.php: Partially fixed, needs completion
+- PpesExport.php: Needs major restructuring
+- Others: Need header and formatting fixes

@@ -73,21 +73,18 @@ class RsmiExport implements FromArray, WithEvents
 
         $data = [];
 
-        // Header rows
+        // Header rows - restructured to match screen view
         $data[] = ['REPORT OF SUPPLIES AND MATERIALS ISSUED', '', '', '', '', '', '', '']; // Title
+        $data[] = [''];
         $data[] = ['For the Month of ' . $asOfMonth, '', '', '', '', '', '', ''];
-        $data[] = ['Fund Cluster: ' . $fundCluster, '', '', '', '', '', '', ''];
-        $data[] = ['', '', '', '', '', '', '', '']; // Empty row
-        $data[] = ['Entity Name: ' . $entityName, '', '', '', '', '', '', ''];
-        $data[] = [$accountablePerson, '', '', '', '', '', '', ''];
-        $data[] = ['(Name of Accountable Officer)', '', '', '', '', '', '', ''];
-        $data[] = ['', '', '', '', '', '', '', '']; // Empty row
-        $data[] = [$position, '', '', '', '', '', '', ''];
-        $data[] = ['(Designation)', '', '', '', '', '', '', ''];
-        $data[] = ['', '', '', '', '', '', '', '']; // Empty row
-        $data[] = [$office, '', '', '', '', '', '', ''];
-        $data[] = ['(Station)', '', '', '', '', '', '', ''];
-        $data[] = ['', '', '', '', '', '', '', '']; // Empty row
+        $data[] = [''];
+        // Header grid layout matching screen view exactly
+        $data[] = ['Entity Name:', $entityName, '', '', '', '', '', ''];
+        $data[] = ['Accountable Officer:', $accountablePerson, '', '', '', '', '', ''];
+        $data[] = ['Position:', $position, '', '', '', '', '', ''];
+        $data[] = ['Office:', $office, '', '', '', '', '', ''];
+        $data[] = ['Fund Cluster:', $fundCluster, '', '', '', '', '', ''];
+        $data[] = [''];
         $data[] = [
             'RIS No.',
             'Responsibility Center Code',
@@ -173,21 +170,31 @@ class RsmiExport implements FromArray, WithEvents
                 $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(16);
                 $sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-                // Header styling for entity info
-                $sheet->getStyle('A5:H5')->getFont()->setBold(true); // Entity Name
-                $sheet->getStyle('A6:H6')->getFont()->setBold(true); // Accountable Person
-                $sheet->getStyle('A9:H9')->getFont()->setBold(true); // Position
-                $sheet->getStyle('A12:H12')->getFont()->setBold(true); // Office
-                $sheet->getStyle('A15:H15')->getFont()->setBold(true); // Fund Cluster
+                // Header styling for entity info - updated for new grid layout
+                $sheet->getStyle('A5:A9')->getFont()->setBold(true); // All header labels
 
-                // Table header style (row 17)
-                $sheet->getStyle('A17:H17')->getFont()->setBold(true);
-                $sheet->getStyle('A17:H17')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle('A17:H17')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                // Add borders around header fields to create box effect
+                $sheet->getStyle('A5:H5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Entity Name box
+                $sheet->getStyle('A6:H6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Accountable Officer box
+                $sheet->getStyle('A7:H7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Position box
+                $sheet->getStyle('A8:H8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Office box
+                $sheet->getStyle('A9:H9')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Fund Cluster box
+
+                // Merge header info area - updated for new grid layout
+                $sheet->mergeCells('B5:H5'); // Entity Name value spans multiple columns
+                $sheet->mergeCells('B6:H6'); // Accountable Officer value spans multiple columns
+                $sheet->mergeCells('B7:H7'); // Position value spans multiple columns
+                $sheet->mergeCells('B8:H8'); // Office value spans multiple columns
+                $sheet->mergeCells('B9:H9'); // Fund Cluster value spans multiple columns
+
+                // Table header style (row 11)
+                $sheet->getStyle('A11:H11')->getFont()->setBold(true);
+                $sheet->getStyle('A11:H11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('A11:H11')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
                 // Extra: ensure Unit Cost cell is centered and bold
-                $sheet->getStyle('G17')->getFont()->setBold(true);
-                $sheet->getStyle('G17')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle('G17')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle('G11')->getFont()->setBold(true);
+                $sheet->getStyle('G11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('G11')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
                 // Set column widths
                 $sheet->getColumnDimension('A')->setWidth(18);

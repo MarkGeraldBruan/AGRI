@@ -8,7 +8,7 @@
     min-height: 100vh;
     background: #f5f5f5;
     transition: 0.5s;
-    padding: 20px;
+    padding: 20px 20px 100px 20px;
     font-family: 'Inter', sans-serif;
 }
 
@@ -113,6 +113,7 @@
     grid-template-columns: 1fr 320px;
     gap: 20px;
     align-items: start;
+    margin-bottom: 50px;
 }
 
 /* Recently Added Section */
@@ -126,7 +127,7 @@
 .section-header {
     background-color: #296218;
     color: white;
-    padding: 20px 24px;
+    padding: 15px 20px;
     margin: 0;
 }
 
@@ -152,7 +153,7 @@
 }
 
 .header-cell {
-    padding: 16px 24px;
+    padding: 10px 20px;
     font-weight: 600;
     font-size: 14px;
     display: flex;
@@ -166,13 +167,13 @@
 
 /* Table Body */
 .table-body {
-    max-height: 300px;
+    max-height: 160px;
     overflow-y: auto;
 }
 
 .table-row {
     display: grid;
-    grid-template-columns: 1fr auto 120px;
+    grid-template-columns: 1fr auto 100px;
     border-bottom: 1px solid #f0f0f0;
     transition: background-color 0.2s ease;
 }
@@ -182,7 +183,7 @@
 }
 
 .cell {
-    padding: 16px 24px;
+    padding: 10px 20px;
     font-size: 14px;
     display: flex;
     align-items: center;

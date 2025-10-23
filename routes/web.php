@@ -16,6 +16,7 @@ use App\Http\Controllers\Client\RsmiController;
 use App\Http\Controllers\Client\RpciController;
 use App\Http\Controllers\Client\RpcPpeController;
 use App\Http\Controllers\Client\PpesController;
+use App\Http\Controllers\Client\AboutController;
 use Illuminate\Support\Facades\Route;
 
 // Root route - redirect to dashboard after login
@@ -85,9 +86,10 @@ Route::prefix('client')->middleware('auth:web')->group(function(){
     });
     
     Route::resource('propertycard', PropertyCardController::class)->names([
-        'index' => 'client.propertycard.index'
+        'index' => 'client.propertycard.index',
+        'show' => 'client.propertycard.show'
     ]);
-    Route::get('propertycard/export/excel', [EquipmentController::class, 'export'])->name('client.propertycard.export.excel');
+    Route::get('propertycard/export/excel/{id}', [PropertyCardController::class, 'exportExcel'])->name('client.propertycard.export.excel');
     
     
     Route::post('announcement/{id}/reserve', [AnnouncementController::class, 'reserveSupplies'])
@@ -131,6 +133,9 @@ Route::prefix('client')->middleware('auth:web')->group(function(){
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead']);
     Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
     Route::get('/notifications/recent', [NotificationController::class, 'getRecent']);
+
+    // About routes
+    Route::get('/about', [AboutController::class, 'index'])->name('client.about.index');
 
     // Alternative route names for backward compatibility
     Route::get('inventory', [SuppliesController::class, 'index'])->name('client.inventory');

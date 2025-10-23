@@ -19,7 +19,7 @@
     font-family: 'Poppins', sans-serif;
     min-height: 100vh;
     background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 50%, #FFC107 100%);
-    background: url('{{ asset('assets/img/atirtc1bg.jpg') }}') no-repeat center center fixed;
+    background: url('{{ asset('assets/img/BgForLoginAndRegister.png') }}') no-repeat center center fixed;
     background-size: cover;
     background-position: center;
     display: flex;
@@ -39,7 +39,7 @@
     <!-- Logo, Title and Subtitle outside the container -->
     <div class="header-section">
         <div class="logo">
-            @if(file_exists(public_path('assets/img/atirtc1logo.jpg')))
+            @if(file_exists(public_path('assets/img/BgForLoginAndRegister.png'))) 
                 <img src="{{ asset('assets/img/sample.png') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">
                 <a style="color: white">X</a>
                 <img src="{{ asset('assets/img/atirtc1logo.jpg') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">

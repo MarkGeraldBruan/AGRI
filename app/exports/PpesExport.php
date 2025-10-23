@@ -71,33 +71,34 @@ class PpesExport implements FromArray, WithEvents, WithColumnFormatting, ShouldA
         // Prepare data for Excel
         $data = [];
 
-    // Add header info (use request-provided values or defaults)
-    $asOf = $this->request->input('as_of', now()->format('F d, Y'));
-    $entityName = $this->request->input('entity_name', 'Agricultural Training Institute-RTC I');
-    $fundCluster = $this->request->input('fund_cluster', '01');
-    $accountable = $this->request->input('accountable_person', 'Franklin A. Salcedo');
-    $position = $this->request->input('position', 'Supply and Property Officer');
-    $office = $this->request->input('office', 'ATI-RTC I');
+        // Add header info (use request-provided values or defaults)
+        $asOf = $this->request->input('as_of', now()->format('F d, Y'));
+        $entityName = $this->request->input('entity_name', 'Agricultural Training Institute-RTC I');
+        $fundCluster = $this->request->input('fund_cluster', '01');
+        $accountable = $this->request->input('accountable_person', 'Franklin A. Salcedo');
+        $position = $this->request->input('position', 'Supply and Property Officer');
+        $office = $this->request->input('office', 'ATI-RTC I');
 
-    $data[] = ['INVENTORY AND INSPECTION REPORT OF UNSERVICEABLE PROPERTY'];
-    $data[] = ['(ATI-RTC I, Sta. Barbara, Pangasinan)'];
-    $data[] = [''];
-    $data[] = ['As of ' . $asOf];
-    $data[] = [''];
-    // Layout header row as three columns: entity | position/center | office + fund cluster
-    $data[] = [ 'Entity Name: ' . $entityName, '', '', '', '', '', '', '', '', 'Fund Cluster : ' . $fundCluster ];
-    $data[] = ['', '', '', '', '', '', '', '', '', ''];
-    $data[] = [ $accountable, '', '', '', '', '', '', '', '', '' ];
-    $data[] = [ '(Name of Accountable Officer)', '', '', '', '', '', '', '', '', '' ];
-    $data[] = [ '', $position, '', '', '', '', '', '', '', $office ];
-    $data[] = [ '', '(Designation)', '', '', '', '', '', '', '', '(Station)'];
-    $data[] = [''];
+        $data[] = ['REPORT ON THE PHYSICAL COUNT OF PROPERTY, PLANT AND EQUIPMENT'];
+        $data[] = [''];
+        $data[] = ['As of ' . $asOf];
+        $data[] = [''];
+        // Header grid layout matching screen view exactly
+        $data[] = ['Entity Name:', $entityName, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['Accountable Officer:', $accountable, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['Position:', $position, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['Office:', $office, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['Fund Cluster:', $fundCluster, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = [''];
 
         // Add table headers
         $data[] = ['INVENTORY', '', '', '', '', '', '', '', '', 'INSPECTION and DISPOSAL', '', '', '', '', 'Appraised Value', 'RECORD OF SALES', ''];
         $data[] = ['Date Acquired', 'Particulars/ Articles', 'Property No.', 'Qty', 'Unit Cost', 'Total Cost', 'Accumulated Depreciation', 'Accumulated Impairment Losses', 'Carrying Amount', 'Remarks', 'DISPOSAL', '', '', '', '', 'OR No.', 'Amount', ''];
         $data[] = ['', '', '', '', '', '', '', '', '', '', 'Sale', 'Transfer', 'Destruction', 'Others (Specify)', 'Total', '', '', ''];
         $data[] = ['(1)', '(2)', '(3)', '(4)', '(5)', '(6)', '(7)', '(8)', '(9)', '(10)', '(11)', '(12)', '(13)', '(14)', '(15)', '(16)', '(17)', '(18)'];
+
+        // Add empty row after headers
+        $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
 
         // Add table data
         foreach ($ppesItems as $item) {
@@ -138,21 +139,31 @@ class PpesExport implements FromArray, WithEvents, WithColumnFormatting, ShouldA
                 $sheet = $event->sheet->getDelegate();
 
                 // Merge title rows
-                $sheet->mergeCells('A1:R1');
-                $sheet->mergeCells('A2:R2');
+                $sheet->mergeCells('A1:R1'); // Title spans all columns
 
-                // Merge header info area (entity left and fund cluster right)
-                $sheet->mergeCells('A6:J6'); // Entity / fund cluster row
-                $sheet->mergeCells('A8:J8'); // accountable row
-                $sheet->mergeCells('B10:I10'); // position
-                $sheet->mergeCells('J10:R10'); // office area
+                // Merge header info area - updated for new grid layout
+                $sheet->mergeCells('B5:R5'); // Entity Name value spans multiple columns
+                $sheet->mergeCells('B6:R6'); // Accountable Officer value spans multiple columns
+                $sheet->mergeCells('B7:R7'); // Position value spans multiple columns
+                $sheet->mergeCells('B8:R8'); // Office value spans multiple columns
+                $sheet->mergeCells('B9:R9'); // Fund Cluster value spans multiple columns
 
                 // Style title
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-                $sheet->getStyle('A2')->getFont()->setItalic(true)->setSize(11);
+                $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(12);
 
-                // Apply borders to table header area starting row ~13 (depends on header lines)
-                $headerStart = 14; // approximate row where table headers begin
+                // Style header labels
+                $sheet->getStyle('A5:A9')->getFont()->setBold(true); // All header labels (Entity Name, Accountable Officer, Position, Office, Fund Cluster)
+
+                // Add borders around header fields to create box effect
+                $sheet->getStyle('A5:R5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Entity Name box
+                $sheet->getStyle('A6:R6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Accountable Officer box
+                $sheet->getStyle('A7:R7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Position box
+                $sheet->getStyle('A8:R8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Office box
+                $sheet->getStyle('A9:R9')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Fund Cluster box
+
+                // Apply borders to table header area starting row ~12 (depends on header lines)
+                $headerStart = 12; // approximate row where table headers begin
                 $sheet->getStyle("A{$headerStart}:R{$headerStart}")->getFont()->setBold(true);
 
                 // Apply thin borders to all used cells

@@ -28,7 +28,7 @@
             min-height: 100vh;
             /* Replace with your actual background image */
             background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 50%, #FFC107 100%);
-            background: url('{{ asset('assets/img/ati-rtc1bg.png') }}') no-repeat center center fixed;
+            background: url('{{ asset('assets/img/BgForLoginAndRegister.png') }}') no-repeat center center fixed;
             background-size: cover;
             background-position: center;
             display: flex;
@@ -456,8 +456,10 @@
     <!-- Logo, Title and Subtitle outside the container -->
     <div class="header-section">
         <div class="logo">
-            @if(file_exists(public_path('images/logo.png')))
-                <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">
+            @if(file_exists(public_path('assets/img/atirtc1logo.jpg')))
+                <img src="{{ asset('assets/img/sample.png') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">
+                <a style="color: white">X</a>
+                <img src="{{ asset('assets/img/atirtc1logo.jpg') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">
             @else
                 <div class="logo-fallback">
                     {{ substr(config('app.name', 'AGRISUPPLY'), 0, 2) }}

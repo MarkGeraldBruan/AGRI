@@ -221,18 +221,11 @@ class StockCardController extends Controller
         $sortDirection = $request->get('sort_direction', 'asc');
         $query->orderBy($sortBy, $sortDirection);
 
-        // If no filters are applied (All), export only current page
-        // If filters are applied, export all matching
-        if ($request->has('search') || $request->has('category') || $request->has('low_stock')) {
-            // Export all matching the filters
-            $supplies = $query->get();
-        } else {
-            // Export only current page when no filters (All)
-            $perPage = 15;
-            $currentPage = $request->get('page', 1);
-            $offset = ($currentPage - 1) * $perPage;
-            $supplies = $query->skip($offset)->take($perPage)->get();
-        }
+        // Export only what's currently visible on the page (progressive export like stock card)
+        $perPage = 15;
+        $currentPage = $request->get('page', 1);
+        $offset = ($currentPage - 1) * $perPage;
+        $supplies = $query->skip($offset)->take($perPage)->get();
 
         $data = [];
 

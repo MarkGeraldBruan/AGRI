@@ -210,18 +210,11 @@ class EquipmentController extends Controller
         $sortDirection = $request->get('sort_direction', 'desc');
         $query->orderBy($sortBy, $sortDirection);
 
-        // If condition filter is applied (Serviceable/Unserviceable), export all matching that condition
-        // If no condition filter (All), export only what's currently visible on the page
-        if ($request->has('condition') && $request->condition) {
-            // Export all equipment matching the condition filter
-            $equipment = $query->get();
-        } else {
-            // Export only current page when "All Conditions" is selected
-            $perPage = 10;
-            $currentPage = $request->get('page', 1);
-            $offset = ($currentPage - 1) * $perPage;
-            $equipment = $query->skip($offset)->take($perPage)->get();
-        }
+        // Export only current page data (progressive export)
+        $perPage = 10;
+        $currentPage = $request->get('page', 1);
+        $offset = ($currentPage - 1) * $perPage;
+        $equipment = $query->skip($offset)->take($perPage)->get();
 
         $data = [];
 

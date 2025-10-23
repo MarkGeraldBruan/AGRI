@@ -57,21 +57,14 @@ class RpcPpeExport implements FromArray, WithEvents
 
         // Header rows
         $data[] = ['Annex A', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 1
-        $data[] = ['REPORT ON THE PHYSICAL COUNT OF PROPERTY PLANT AND EQUIPMENT', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 2
+        $data[] = ['REPORT ON THE PHYSICAL COUNT OF PROPERTY, PLANT AND EQUIPMENT', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 2
         $data[] = $formattedDate ? ['As of ' . $formattedDate, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 3
         $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 4)
-        $data[] = $entityName ? ['Entity Name: ' . $entityName, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 5
-        $data[] = $accountablePerson ? [$accountablePerson, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 6
-        $data[] = ['(Name of Accountable Officer)', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 7
+        // Header grid layout matching screen view exactly
+        $data[] = ['Entity Name:', $entityName ?: 'Agricultural Training Institute-RTC I', '', '', 'Accountable Officer:', $accountablePerson ?: 'Franklin A. Salcedo', '', '', 'Position:', $position ?: 'Supply and Property Officer', '', '', 'Office:', $office ?: 'ATI-RTC I']; // Row 5
+        $data[] = ['', '', '', '', '', '(Name)', '', '', '', '(Designation)', '', '', '', '(Station)']; // Row 6
+        $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', 'Fund Cluster:', $fundCluster ?: '01']; // Row 7
         $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 8)
-        $data[] = $position ? [$position, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 9
-        $data[] = ['(Designation)', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 10
-        $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 11)
-        $data[] = $office ? [$office, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 12
-        $data[] = ['(Station)', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 13
-        $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 14)
-        $data[] = $fundCluster ? ['Fund Cluster : ' . $fundCluster, '', '', '', '', '', '', '', '', '', '', '', '', ''] : ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 15
-        $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 16)
         $data[] = [
             'Classification',
             'Article/Item',
@@ -87,7 +80,7 @@ class RpcPpeExport implements FromArray, WithEvents
             'Person Responsible',
             'Responsibility Center',
             'Condition of Properties'
-        ]; // Row 17 - Table Header
+        ]; // Row 9 - Table Header
 
         // Table rows
         foreach ($equipment as $item) {
@@ -134,39 +127,54 @@ class RpcPpeExport implements FromArray, WithEvents
                 $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(12);
                 $sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-                // Header styling for entity info
-                $sheet->getStyle('A5:N5')->getFont()->setBold(true); // Entity Name
-                $sheet->getStyle('A6:N6')->getFont()->setBold(true); // Accountable Person
-                $sheet->getStyle('A9:N9')->getFont()->setBold(true); // Position
-                $sheet->getStyle('A12:N12')->getFont()->setBold(true); // Office
-                $sheet->getStyle('A15:N15')->getFont()->setBold(true); // Fund Cluster
+                // Header styling for entity info - updated for new grid layout
+                $sheet->mergeCells('B5:D5'); // Entity Name value
+                $sheet->mergeCells('F5:H5'); // Accountable Officer value
+                $sheet->mergeCells('J5:L5'); // Position value
+                $sheet->mergeCells('N5:N5'); // Office value
+                $sheet->mergeCells('B6:D6'); // (Name)
+                $sheet->mergeCells('F6:H6'); // (Name) label
+                $sheet->mergeCells('J6:L6'); // (Designation)
+                $sheet->mergeCells('N6:N6'); // (Station)
+                $sheet->mergeCells('M7:N7'); // Fund Cluster value
 
-                // Row 17: Table header - Bold, center, wrap text
-                $sheet->getStyle('A17:N17')->getFont()->setBold(true)->setSize(10);
-                $sheet->getStyle('A17:N17')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle('A17:N17')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-                $sheet->getStyle('A17:N17')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-                $sheet->getStyle('A17:N17')->getAlignment()->setWrapText(true);
+                // Add borders around header fields to create box effect
+                $sheet->getStyle('A5:D7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN); // Entity Name box
+                $sheet->getStyle('E5:H7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN); // Accountable Officer box
+                $sheet->getStyle('I5:L7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN); // Position box
+                $sheet->getStyle('M5:N7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN); // Office box
+
+                // Style header labels
+                $sheet->getStyle('A5:A7')->getFont()->setBold(true); // Entity Name, Accountable Officer, Fund Cluster labels
+                $sheet->getStyle('E5:K7')->getFont()->setBold(true); // Other labels
+                $sheet->getStyle('M7')->getFont()->setBold(true); // Fund Cluster label
+
+                // Row 9: Table header - Bold, center, wrap text
+                $sheet->getStyle('A9:N9')->getFont()->setBold(true)->setSize(10);
+                $sheet->getStyle('A9:N9')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('A9:N9')->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+                $sheet->getStyle('A9:N9')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle('A9:N9')->getAlignment()->setWrapText(true);
 
                 // Set row heights
                 $sheet->getRowDimension(2)->setRowHeight(25);
-                $sheet->getRowDimension(17)->setRowHeight(40);
+                $sheet->getRowDimension(9)->setRowHeight(40);
 
-                // Set column widths
+                // Set optimal column widths for better readability
                 $sheet->getColumnDimension('A')->setWidth(20); // Classification
-                $sheet->getColumnDimension('B')->setWidth(25); // Article/Item
-                $sheet->getColumnDimension('C')->setWidth(30); // Description
-                $sheet->getColumnDimension('D')->setWidth(18); // Property Number
-                $sheet->getColumnDimension('E')->setWidth(12); // Unit of Measure
-                $sheet->getColumnDimension('F')->setWidth(12); // Unit Value
-                $sheet->getColumnDimension('G')->setWidth(12); // Acquisition Date
-                $sheet->getColumnDimension('H')->setWidth(8); // Quantity per Property Card
-                $sheet->getColumnDimension('I')->setWidth(8); // Quantity per Physical Count
-                $sheet->getColumnDimension('J')->setWidth(8); // Shortage/Overage Quantity
-                $sheet->getColumnDimension('K')->setWidth(8); // Shortage/Overage Value
-                $sheet->getColumnDimension('L')->setWidth(15); // Person Responsible
-                $sheet->getColumnDimension('M')->setWidth(15); // Responsibility Center
-                $sheet->getColumnDimension('N')->setWidth(12); // Condition of Properties
+                $sheet->getColumnDimension('B')->setWidth(30); // Article/Item
+                $sheet->getColumnDimension('C')->setWidth(40); // Description
+                $sheet->getColumnDimension('D')->setWidth(22); // Property Number
+                $sheet->getColumnDimension('E')->setWidth(16); // Unit of Measure
+                $sheet->getColumnDimension('F')->setWidth(15); // Unit Value
+                $sheet->getColumnDimension('G')->setWidth(16); // Acquisition Date
+                $sheet->getColumnDimension('H')->setWidth(12); // Quantity per Property Card
+                $sheet->getColumnDimension('I')->setWidth(12); // Quantity per Physical Count
+                $sheet->getColumnDimension('J')->setWidth(12); // Shortage/Overage Quantity
+                $sheet->getColumnDimension('K')->setWidth(12); // Shortage/Overage Value
+                $sheet->getColumnDimension('L')->setWidth(20); // Person Responsible
+                $sheet->getColumnDimension('M')->setWidth(20); // Responsibility Center
+                $sheet->getColumnDimension('N')->setWidth(16); // Condition of Properties
             },
 
         ];

@@ -143,7 +143,7 @@
                                         </td>
                                         <td style="text-align: center; vertical-align: middle;">
                                             <div class="action-buttons-cell" style="justify-content: center;">
-                                                <a href="{{ route('propertycard.show', $item->id) }}" class="btn btn-primary btn-sm" title="View Details">
+                                                <a href="{{ route('client.propertycard.show', $item->id) }}" class="btn btn-primary btn-sm" title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                             </div>

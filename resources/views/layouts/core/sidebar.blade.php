@@ -88,6 +88,12 @@
                 <span class="title">Profile Settings</span>
             </a>
         </li>
+        <li class="{{ Request::is('client/about*') ? 'hovered' : '' }}">
+            <a href="{{ route('client.about.index') }}">
+                <span class="icon"><ion-icon name="information-circle-outline"></ion-icon></span>
+                <span class="title">About</span>
+            </a>
+        </li>
         <li>
             <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                 <span class="icon"><ion-icon name="log-out-outline"></ion-icon></span>

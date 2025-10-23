@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 
 <div class="welcome-section">
-    <h2><strong>Welcome to the Dashboard</strong></h2>
+    <h2><strong>@if(auth()->user()->isAdmin()) Welcome to the Admin Dashboard @else Welcome to the Dashboard @endif</strong></h2>
 </div>
 
 @if(!auth()->user()->isAdmin())
