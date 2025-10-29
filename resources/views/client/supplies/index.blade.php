@@ -1,8 +1,9 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Manage Supplies</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/supplies.css') }}">
@@ -10,7 +11,6 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     <div class="container">
@@ -81,7 +81,7 @@
                         {{ session('success') }}
                     </div>
                 @endif
-                
+
                 <!-- Permission Warning -->
                 @if(!auth()->user()->hasPermission('read'))
                     <div class="alert alert-warning">
@@ -89,13 +89,13 @@
                         You do not have permission to view supplies. Please contact an administrator.
                     </div>
                 @else
-                    <!-- Table Section -->
-                    <div class="supplies-table-container">
+                <!-- Table Section -->
+                <div class="supplies-table-container">
                         @if($supplies->count() > 0)
                             <table class="supplies-table">
                                 <thead>
                                     <tr>
-                                        <th>
+                                        <th style="width: 5%; text-align: center;">
                                             <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'id', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}">
                                                 ID
                                                 @if(request('sort_by') == 'id')
@@ -103,7 +103,7 @@
                                                 @endif
                                             </a>
                                         </th>
-                                        <th>
+                                        <th style="width: 20%;">
                                             <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'name', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}">
                                                 Items
                                                 @if(request('sort_by') == 'name')
@@ -111,7 +111,7 @@
                                                 @endif
                                             </a>
                                         </th>
-                                        <th>
+                                        <th style="width: 20%;">
                                             <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'quantity', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}">
                                                 Quantity
                                                 @if(request('sort_by') == 'quantity')
@@ -119,7 +119,7 @@
                                                 @endif
                                             </a>
                                         </th>
-                                        <th>
+                                        <th style="width: 10%; text-align: center;">
                                             <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'purchase_date', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}">
                                                 Date
                                                 @if(request('sort_by') == 'purchase_date')
@@ -127,7 +127,7 @@
                                                 @endif
                                             </a>
                                         </th>
-                                        <th>
+                                        <th style="width: 30%; text-align: center;">
                                             <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'category', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}">
                                                 Categories
                                                 @if(request('sort_by') == 'category')
@@ -135,14 +135,14 @@
                                                 @endif
                                             </a>
                                         </th>
-                                        <th>Action</th>
+                                        <th style="width: 15%; text-align: center;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($supplies as $supply)
                                         <tr>
-                                            <td>
-                                                <div style="font-weight: 600; color: #6c757d; font-size: 14px;">
+                                            <td style="text-align: center;">
+                                                <div style="font-weight: 600; color: #6c757d;">
                                                     #{{ str_pad($supply->id, 4, '0', STR_PAD_LEFT) }}
                                                 </div>
                                             </td>
@@ -170,19 +170,19 @@
                                                     </span>
                                                 @endif
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 {{ $supply->formatted_purchase_date }}
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 @if($supply->category)
-                                                    <span class="status-badge" style="background: #e3f2fd; color: #1565c0;">
+                                                    <span class="status-badge" style="background: #e3f2fd; color: #1565c0; font-size: 12px; padding: 4px 8px;">
                                                         {{ $supply->category }}
                                                     </span>
                                                 @else
                                                     <span style="color: #6c757d;">—</span>
                                                 @endif
                                             </td>
-                                            <td>
+                                            <td style="text-align: center;">
                                                 <div class="action-buttons-cell">
                                                     {{-- View button - requires read permission --}}
                                                     @if(auth()->user()->hasPermission('read'))
@@ -190,28 +190,28 @@
                                                             <i class="fas fa-eye"></i>
                                                         </a>
                                                     @endif
-                                                    
+
                                                     {{-- Edit button - requires update permission --}}
                                                     @if(auth()->user()->hasPermission('update'))
                                                         <a href="{{ route('supplies.edit', $supply) }}" class="btn btn-warning btn-sm" title="Edit">
                                                             <i class="fas fa-edit"></i>
                                                         </a>
                                                     @endif
-                                                    
+
                                                     {{-- Delete button - requires delete permission --}}
                                                     @if(auth()->user()->hasPermission('delete'))
                                                         <form method="POST" action="{{ route('supplies.destroy', $supply) }}" style="display: inline;">
                                                             @csrf
                                                             @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete" 
+                                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete"
                                                                     onclick="return confirm('Are you sure you want to delete this item?')">
                                                                 <i class="fas fa-trash"></i>
                                                             </button>
                                                         </form>
                                                     @else
                                                         {{-- Show locked icon if no delete permission --}}
-                                                        <button class="btn btn-sm" 
-                                                                style="background: #6c757d; color: white; cursor: not-allowed;" 
+                                                        <button class="btn btn-sm"
+                                                                style="background: #6c757d; color: white; cursor: not-allowed;"
                                                                 title="No delete permission" disabled>
                                                             <i class="fas fa-lock"></i>
                                                         </button>
@@ -245,7 +245,7 @@
                     </div>
                 @endif
             </div>
-        </div>   
+        </div>
     </div>
 
     <script>
@@ -294,6 +294,8 @@
                 window.location.href = url.toString();
             });
         });
+
+
     </script>
 
     @include('layouts.core.footer')

@@ -51,6 +51,7 @@
     width: 100%;
     box-sizing: border-box;
     min-width: 0;
+    flex-wrap: nowrap;
 }
 
 .header-left .system-title {
@@ -61,6 +62,8 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .header-left .system-subtitle {
@@ -69,6 +72,8 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 .header-right {
@@ -77,6 +82,7 @@
     gap: 20px;
     position: relative;
     z-index: 51;
+    flex-shrink: 0;
 }
 
 /* Notifications container */
