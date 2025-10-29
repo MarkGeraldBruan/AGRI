@@ -24,22 +24,22 @@
                         <i class="fas fa-bullhorn"></i>
                         Announcement
                     </h1>
-                    
-                    <!-- Controls Row -->
-                    <div class="controls-row">
-                        <div class="search-filter-group">
-                            <div class="search-box">
-                                <i class="fas fa-search"></i>
-                                <input type="text" placeholder="Search announcements..." 
-                                value="{{ request('search') }}" id="searchInput">
-                            </div>
+                </div>
+
+                <!-- Controls Row -->
+                <div class="controls-row">
+                    <div class="search-filter-group">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search announcements..."
+                            value="{{ request('search') }}" id="searchInput">
                         </div>
-                        <div class="action-buttons">
-                            <a href="{{ route('client.announcement.create') }}" class="btn btn-success">
-                                <i class="fas fa-plus"></i>
-                                Add New Event
-                            </a>                     
-                        </div>
+                    </div>
+                    <div class="action-buttons">
+                        <a href="{{ route('client.announcement.create') }}" class="btn btn-success">
+                            <i class="fas fa-plus"></i>
+                            Add New Event
+                        </a>
                     </div>
                 </div>
             

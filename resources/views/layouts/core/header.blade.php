@@ -48,6 +48,9 @@
     box-shadow: 0 4px 15px rgba(41, 98, 24, 0.3);
     position: relative;
     z-index: 50;
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 .header-left .system-title {
@@ -55,11 +58,17 @@
     font-weight: 600;
     display: block;
     margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .header-left .system-subtitle {
     font-size: 13px;
     opacity: 0.9;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .header-right {
@@ -302,17 +311,25 @@
 .user-info {
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    flex: 1;
 }
 
 .username {
     font-weight: 600;
     font-size: 14px;
     margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .user-email {
     font-size: 12px;
     opacity: 0.8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Scrollbar styling */

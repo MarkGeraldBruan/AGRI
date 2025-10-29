@@ -8,21 +8,32 @@
     <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('css/supplies.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/announcement.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <style>
+        .about-container {
+            background-color: #296218;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
         .about-content {
-            flex: 1;
-            background: #d4edda;
+            background: white;
+            border-radius: 12px;
             padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
             display: flex;
             flex-direction: column;
             gap: 20px;
-            border-radius: 15px;
-            min-height: 100vh; /* Extend green background to full viewport height */
         }
 
         .about-title {
@@ -67,7 +78,7 @@
             color: #296218;
         }
 
-        .about-button .about-title {
+        .about-button .about-button-title {
             font-size: 18px;
             margin-bottom: 5px;
         }
@@ -115,7 +126,7 @@
                 margin-bottom: 8px;
             }
 
-            .about-button .about-title {
+            .about-button .about-button-title {
                 font-size: 16px;
                 margin-bottom: 3px;
             }
@@ -134,25 +145,28 @@
 
             <!-- About Content -->
             <div class="supplies-container">
-                <div class="supplies-header">
+                <!-- Header Section -->
+                <div class="supplies-header-section">
                     <h1 class="supplies-title">
                         <i class="fas fa-info-circle"></i>
                         About
                     </h1>
                 </div>
 
-                <div class="about-grid">
-                    <button onclick="openAboutSystemModal()" class="about-button">
-                        <i class="fas fa-cogs about-icon"></i>
-                        <div class="about-title">About Our System</div>
-                        <div class="about-subtitle">Learn about the ATI-RTC 1 Monitoring Management system</div>
-                    </button>
+                <div class="supplies-content">
+                    <div class="about-grid">
+                        <button onclick="openAboutSystemModal()" class="about-button">
+                            <i class="fas fa-cogs about-icon"></i>
+                            <div class="about-button-title">About Our System</div>
+                            <div class="about-subtitle">Learn about the ATI-RTC 1 Monitoring Management system</div>
+                        </button>
 
-                    <button onclick="openAboutUsModal()" class="about-button">
-                        <i class="fas fa-users about-icon"></i>
-                        <div class="about-title">About Us</div>
-                        <div class="about-subtitle">Meet The4fumlas</div>
-                    </button>
+                        <button onclick="openAboutUsModal()" class="about-button">
+                            <i class="fas fa-users about-icon"></i>
+                            <div class="about-button-title">About Us</div>
+                            <div class="about-subtitle">Meet The4fumlas</div>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

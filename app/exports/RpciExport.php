@@ -58,33 +58,37 @@ class RpciExport implements FromArray, WithEvents
         });
 
         // Build header values from request
-        $entityName = $this->request->query('entity_name', 'Agricultural Training Institute-RTC I');
-        $accountablePerson = $this->request->query('accountable_person', 'Franklin A. Salcedo');
-        $position = $this->request->query('position', 'Supply and Property Officer');
-        $office = $this->request->query('office', 'ATI-RTC I');
-        $fundCluster = $this->request->query('fund_cluster', '01');
+        $entityName = $this->request->query('entity_name') ?: '';
+        $accountablePerson = $this->request->query('accountable_person') ?: '';
+        $position = $this->request->query('position') ?: '';
+        $office = $this->request->query('office') ?: '';
+        $fundCluster = $this->request->query('fund_cluster') ?: '';
         $asOfDate = $this->request->query('as_of');
-        if ($asOfDate) {
-            $formattedDate = \Carbon\Carbon::parse($asOfDate)->format('F d, Y');
-        } else {
-            $formattedDate = now()->format('F d, Y');
-        }
+        $formattedDate = $asOfDate ? \Carbon\Carbon::parse($asOfDate)->format('F d, Y') : '';
         $asOfMonth = $this->request->query('as_of') ? \Carbon\Carbon::parse($this->request->query('as_of'))->format('F Y') : now()->format('F Y');
+        $assumptionDate = $this->request->query('assumption_date') ?: '';
 
         $data = [];
 
         // Header rows - restructured to match screen view
-        $data[] = ['REPORT OF SUPPLIES AND MATERIALS ISSUED', '', '', '', '', '', '', '']; // Title
+        $data[] = ['REPORT ON THE PHYSICAL COUNT OF INVENTORIES', '', '', '', '', '', '', '']; // Title
         $data[] = [''];
-        $data[] = ['For the Month of ' . $asOfMonth, '', '', '', '', '', '', ''];
+        $data[] = ['As of ' . $formattedDate, '', '', '', '', '', '', ''];
         $data[] = [''];
         // Header grid layout matching screen view exactly
-        $data[] = ['Entity Name:', $entityName, '', '', '', '', '', ''];
-        $data[] = ['Accountable Officer:', $accountablePerson, '', '', '', '', '', ''];
-        $data[] = ['Position:', $position, '', '', '', '', '', ''];
-        $data[] = ['Office:', $office, '', '', '', '', '', ''];
+        $data[] = ['Entity Name:', $entityName, '', '', 'Accountable Officer:', $accountablePerson, '', ''];
+        $data[] = ['', '', '', '', '(Name)', '', '', ''];
+        $data[] = ['Position:', $position, '', '', 'Office:', $office, '', ''];
+        $data[] = ['', '', '', '', '(Designation)', '', '', ''];
+        $data[] = ['', '', '', '', '(Station)', '', '', ''];
         $data[] = ['Fund Cluster:', $fundCluster, '', '', '', '', '', ''];
         $data[] = [''];
+
+        // Accountability text
+        $accountabilityText = 'For which ' . ($accountablePerson ?: '___') . ', ' . ($position ?: '___') . ', ' . ($office ?: '___') . ' is accountable, having assumed such accountability on ' . ($assumptionDate ? \Carbon\Carbon::parse($assumptionDate)->format('F d, Y') : '__________') . '.';
+        $data[] = [$accountabilityText, '', '', '', '', '', '', ''];
+        $data[] = [''];
+
         $data[] = [
             'RIS No.',
             'Responsibility Center Code',

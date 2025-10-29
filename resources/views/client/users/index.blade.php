@@ -25,31 +25,31 @@
                         <i class="fas fa-users"></i>
                         Manage Users
                     </h1>
-                    
-                    <!-- Controls Row -->
-                    <div class="controls-row">
-                        <div class="search-filter-group">
-                            <div class="search-box">
-                                <i class="fas fa-search"></i>
-                                <input type="text" placeholder="Search by name or email" 
-                                       id="userSearch">
-                            </div>
-                            
-                            <div class="filter-dropdown">
-                                <select id="roleFilter">
-                                    <option value="">All Roles</option>
-                                    <option value="admin">Admin</option>
-                                    <option value="user">User</option>
-                                </select>
-                            </div>
+                </div>
+
+                <!-- Controls Row -->
+                <div class="controls-row">
+                    <div class="search-filter-group">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search by name or email"
+                                   id="userSearch">
                         </div>
-                        
-                        <div class="action-buttons">
-                            <a href="{{ url('client/users/create') }}" class="btn btn-success">
-                                <i class="fas fa-plus"></i>
-                                Add User
-                            </a>
+
+                        <div class="filter-dropdown">
+                            <select id="roleFilter">
+                                <option value="">All Roles</option>
+                                <option value="admin">Admin</option>
+                                <option value="user">User</option>
+                            </select>
                         </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <a href="{{ url('client/users/create') }}" class="btn btn-success">
+                            <i class="fas fa-plus"></i>
+                            Add User
+                        </a>
                     </div>
                 </div>
                 

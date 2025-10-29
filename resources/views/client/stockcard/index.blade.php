@@ -92,7 +92,7 @@
                                     </th>
                                     <th style="width: 25%;">
                                         <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'id', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}">
-                                            <i class="fas fa-user" style="margin-right: 5px;"></i>ID
+                                            <i class="fas fa-user" style="margin-right: 5px;"></i>Stock No.
                                             @if(request('sort_by') == 'id')
                                                 <i class="fas fa-sort-{{ request('sort_direction') == 'asc' ? 'up' : 'down' }}"></i>
                                             @endif

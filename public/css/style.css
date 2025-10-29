@@ -148,12 +148,13 @@ body {
 /* Main content area */
 .details {
     position: relative;
-    width: calc(100% - 300px); /* Changed from 280px to 300px */
-    left: 300px; /* Changed from 280px to 300px */
+    width: calc(100% - 300px) !important; /* Changed from 280px to 300px */
+    left: 300px !important; /* Changed from 280px to 300px */
     min-height: 100vh;
     background: #f5f5f5;
     transition: 0.3s ease;
     padding: 20px;
+    box-sizing: border-box;
 }
 
 /* Optional: Add section grouping */

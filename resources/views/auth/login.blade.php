@@ -41,7 +41,7 @@
         <div class="logo">
             @if(file_exists(public_path('assets/img/BgForLoginAndRegister.png'))) 
                 <img src="{{ asset('assets/img/sample.png') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">
-                <a style="color: white">X</a>
+                <a style="color: white"> </a>
                 <img src="{{ asset('assets/img/atirtc1logo.jpg') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">
             @else
                 <div class="logo-fallback">

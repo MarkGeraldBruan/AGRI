@@ -25,16 +25,16 @@
                         <i class="fas fa-boxes"></i>
                         Manage Supplies
                     </h1>
-                    
+
                     <!-- Controls Row -->
                     <div class="controls-row">
                         <div class="search-filter-group">
                             <div class="search-box">
                                 <i class="fas fa-search"></i>
-                                <input type="text" placeholder="Search by items or categories" 
+                                <input type="text" placeholder="Search by items or categories"
                                        value="{{ request('search') }}" id="searchInput">
                             </div>
-                            
+
                             <div class="filter-dropdown">
                                 <select id="categoryFilter">
                                     <option value="">All Categories</option>
@@ -45,7 +45,7 @@
                                     @endforeach
                                 </select>
                             </div>
-                            
+
                             <div class="filter-dropdown">
                                 <select id="stockFilter">
                                     <option value="">All Items</option>
@@ -53,7 +53,7 @@
                                 </select>
                             </div>
                         </div>
-                        
+
                         <div class="action-buttons">
                             {{-- Only show Add button if user has create permission --}}
                             @if(auth()->user()->hasPermission('create'))
@@ -62,7 +62,7 @@
                                     Add Items
                                 </a>
                             @endif
-                            
+
                             {{-- Only show Export if user can read --}}
                             @if(auth()->user()->hasPermission('read'))
                                 <a href="{{ route('supplies.export') }}" class="btn btn-primary">

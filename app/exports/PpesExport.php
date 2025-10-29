@@ -71,24 +71,35 @@ class PpesExport implements FromArray, WithEvents, WithColumnFormatting, ShouldA
         // Prepare data for Excel
         $data = [];
 
-        // Add header info (use request-provided values or defaults)
-        $asOf = $this->request->input('as_of', now()->format('F d, Y'));
-        $entityName = $this->request->input('entity_name', 'Agricultural Training Institute-RTC I');
-        $fundCluster = $this->request->input('fund_cluster', '01');
-        $accountable = $this->request->input('accountable_person', 'Franklin A. Salcedo');
-        $position = $this->request->input('position', 'Supply and Property Officer');
-        $office = $this->request->input('office', 'ATI-RTC I');
+        // Build header values from request
+        $entityName = $this->request->query('entity_name') ?: '';
+        $accountablePerson = $this->request->query('accountable_person') ?: '';
+        $position = $this->request->query('position') ?: '';
+        $office = $this->request->query('office') ?: '';
+        $fundCluster = $this->request->query('fund_cluster') ?: '';
+        $asOfDate = $this->request->query('as_of');
+        $formattedDate = $asOfDate ? \Carbon\Carbon::parse($asOfDate)->format('F d, Y') : '';
+        $assumptionDate = $this->request->query('assumption_date') ?: '';
 
-        $data[] = ['REPORT ON THE PHYSICAL COUNT OF PROPERTY, PLANT AND EQUIPMENT'];
+        $data[] = ['REPORT ON THE PHYSICAL COUNT OF PROPERTY, PLANT AND EQUIPMENT', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['(ATI-RTC I)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = [$formattedDate ? 'As of ' . $formattedDate : '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
         $data[] = [''];
-        $data[] = ['As of ' . $asOf];
+        // Header grid layout matching screen view exactly (4 columns)
+        $data[] = ['', 'Entity Name:', $entityName, '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['', '', '(Name)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['', 'Accountable Officer:', $accountablePerson, '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['', '', '(Name)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['', 'Position:', $position, '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['', '', '(Designation)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['', 'Office:', $office, '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['', '', '(Station)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['', 'Fund Cluster:', $fundCluster, '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
         $data[] = [''];
-        // Header grid layout matching screen view exactly
-        $data[] = ['Entity Name:', $entityName, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['Accountable Officer:', $accountable, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['Position:', $position, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['Office:', $office, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['Fund Cluster:', $fundCluster, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+
+        // Accountability text
+        $accountabilityText = 'For which ' . ($accountablePerson ?: '___') . ', ' . ($position ?: '___') . ', ' . ($office ?: '___') . ' is accountable, having assumed such accountability on ' . ($assumptionDate ? \Carbon\Carbon::parse($assumptionDate)->format('F d, Y') : '__________') . '.';
+        $data[] = [$accountabilityText, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
         $data[] = [''];
 
         // Add table headers
@@ -141,29 +152,33 @@ class PpesExport implements FromArray, WithEvents, WithColumnFormatting, ShouldA
                 // Merge title rows
                 $sheet->mergeCells('A1:R1'); // Title spans all columns
 
-                // Merge header info area - updated for new grid layout
-                $sheet->mergeCells('B5:R5'); // Entity Name value spans multiple columns
-                $sheet->mergeCells('B6:R6'); // Accountable Officer value spans multiple columns
-                $sheet->mergeCells('B7:R7'); // Position value spans multiple columns
-                $sheet->mergeCells('B8:R8'); // Office value spans multiple columns
-                $sheet->mergeCells('B9:R9'); // Fund Cluster value spans multiple columns
+                // Merge header info area - updated for new grid layout (4 columns)
+                $sheet->mergeCells('C5:R5'); // Entity Name value spans multiple columns
+                $sheet->mergeCells('C6:R6'); // (Name) label spans multiple columns
+                $sheet->mergeCells('C7:R7'); // Accountable Officer value spans multiple columns
+                $sheet->mergeCells('C8:R8'); // (Name) label spans multiple columns
+                $sheet->mergeCells('C9:R9'); // Position value spans multiple columns
+                $sheet->mergeCells('C10:R10'); // (Designation) label spans multiple columns
+                $sheet->mergeCells('C11:R11'); // Office value spans multiple columns
+                $sheet->mergeCells('C12:R12'); // (Station) label spans multiple columns
+                $sheet->mergeCells('C13:R13'); // Fund Cluster value spans multiple columns
 
                 // Style title
                 $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
                 $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(12);
 
                 // Style header labels
-                $sheet->getStyle('A5:A9')->getFont()->setBold(true); // All header labels (Entity Name, Accountable Officer, Position, Office, Fund Cluster)
+                $sheet->getStyle('B5:B13')->getFont()->setBold(true); // All header labels (Entity Name, Accountable Officer, Position, Office, Fund Cluster)
 
-                // Add borders around header fields to create box effect
-                $sheet->getStyle('A5:R5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Entity Name box
-                $sheet->getStyle('A6:R6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Accountable Officer box
-                $sheet->getStyle('A7:R7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Position box
-                $sheet->getStyle('A8:R8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Office box
-                $sheet->getStyle('A9:R9')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Fund Cluster box
+                // Add borders around header fields to create box effect (4 columns)
+                $sheet->getStyle('A5:R6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Entity Name box
+                $sheet->getStyle('A7:R8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Accountable Officer box
+                $sheet->getStyle('A9:R10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Position box
+                $sheet->getStyle('A11:R12')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Office box
+                $sheet->getStyle('A13:R13')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Fund Cluster box
 
-                // Apply borders to table header area starting row ~12 (depends on header lines)
-                $headerStart = 12; // approximate row where table headers begin
+                // Apply borders to table header area starting row ~16 (depends on header lines)
+                $headerStart = 16; // approximate row where table headers begin
                 $sheet->getStyle("A{$headerStart}:R{$headerStart}")->getFont()->setBold(true);
 
                 // Apply thin borders to all used cells

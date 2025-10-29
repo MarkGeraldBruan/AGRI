@@ -39,7 +39,7 @@ class RpciController extends Controller
 
         $rpciItems = $supplies->map(function ($supply) {
             return (object) [
-                'article' => '---', // Placeholder for article
+                'name' => '---', // Placeholder for article
                 'description' => $supply->name,
                 'stock_number' => '---', // Placeholder for stock number
                 'unit_of_measure' => $supply->unit,
@@ -99,7 +99,7 @@ class RpciController extends Controller
 
         $rpciItems = $supplies->map(function ($supply) {
             return (object) [
-                'article' => '---',
+                'name' => '---',
                 'description' => $supply->name,
                 'stock_number' => '---',
                 'unit_of_measure' => $supply->unit,

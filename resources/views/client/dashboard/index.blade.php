@@ -1,10 +1,58 @@
 <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 
 <div class="welcome-section">
-    <h2><strong>@if(auth()->user()->isAdmin()) Welcome to the Admin Dashboard @else Welcome to the Dashboard @endif</strong></h2>
+    <h2><strong></strong></h2>
 </div>
 
-@if(!auth()->user()->isAdmin())
+
+
+@if(auth()->user()->isAdmin())
+<div class="stats-container">
+    <div class="stat-card green" onclick="navigateTo('/client/supplies')">
+        <div class="stat-left">
+            <div class="stat-icon">
+                <ion-icon name="clipboard"></ion-icon>
+            </div>
+            <div class="stat-content">
+                <h3>Total Items</h3>
+                <span class="stat-number">{{ $totalItems }}</span>
+            </div>
+        </div>
+        <div class="arrow-icon">
+            <ion-icon name="chevron-forward"></ion-icon>
+        </div>
+    </div>
+    <div class="stat-card green" onclick="navigateTo('/client/users')">
+        <div class="stat-left">
+            <div class="stat-icon">
+                <ion-icon name="people"></ion-icon>
+            </div>
+            <div class="stat-content">
+                <h3>Active Users</h3>
+                <span class="stat-number">{{ $totalUsers }}</span>
+            </div>
+        </div>
+        <div class="arrow-icon">
+            <ion-icon name="chevron-forward"></ion-icon>
+        </div>
+    </div>
+    <div class="stat-card green" onclick="navigateTo('/client/supplies')">
+        <div class="stat-left">
+            <div class="stat-icon">
+                <ion-icon name="cube"></ion-icon>
+            </div>
+            <div class="stat-content">
+                <h3>Items in Stock</h3>
+                <span class="stat-number">{{ $itemsInStock}}</span>
+            </div>
+        </div>
+        <div class="arrow-icon">
+            <ion-icon name="chevron-forward"></ion-icon>
+        </div>
+    </div>
+</div>
+@endif
+
 <!-- Upcoming Events Section for Non-Admin Users -->
 <div class="upcoming-events-section">
     <div class="section-header">
@@ -73,54 +121,6 @@
         @endforelse
     </div>
 </div>
-@endif
-
-@if(auth()->user()->isAdmin())
-<div class="stats-container">
-    <div class="stat-card green" onclick="navigateTo('/client/supplies')">
-        <div class="stat-left">
-            <div class="stat-icon">
-                <ion-icon name="clipboard"></ion-icon>
-            </div>
-            <div class="stat-content">
-                <h3>Total Items</h3>
-                <span class="stat-number">{{ $totalItems }}</span>
-            </div>
-        </div>
-        <div class="arrow-icon">
-            <ion-icon name="chevron-forward"></ion-icon>
-        </div>
-    </div>
-    <div class="stat-card green" onclick="navigateTo('/client/users')">
-        <div class="stat-left">
-            <div class="stat-icon">
-                <ion-icon name="people"></ion-icon>
-            </div>
-            <div class="stat-content">
-                <h3>Active Users</h3>
-                <span class="stat-number">{{ $totalUsers }}</span>
-            </div>
-        </div>
-        <div class="arrow-icon">
-            <ion-icon name="chevron-forward"></ion-icon>
-        </div>
-    </div>
-    <div class="stat-card green" onclick="navigateTo('/client/supplies')">
-        <div class="stat-left">
-            <div class="stat-icon">
-                <ion-icon name="cube"></ion-icon>
-            </div>
-            <div class="stat-content">
-                <h3>Items in Stock</h3>
-                <span class="stat-number">{{ $itemsInStock}}</span>
-            </div>
-        </div>
-        <div class="arrow-icon">
-            <ion-icon name="chevron-forward"></ion-icon>
-        </div>
-    </div>
-</div>
-@endif
 
 <div class="main-content-area">
     <div class="recently-added-section">

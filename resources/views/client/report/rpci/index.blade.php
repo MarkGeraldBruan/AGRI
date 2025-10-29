@@ -553,7 +553,7 @@
                         <tbody>
                             @foreach($rpciItems as $item)
                                 <tr>
-                                    <td>{{ $item->article }}</td>
+                                    <td>{{ $item->name }}</td>
                                     <td>{{ $item->description }}</td>
                                     <td>{{ $item->stock_number }}</td>
                                     <td>{{ $item->unit_of_measure }}</td>
