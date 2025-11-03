@@ -36,7 +36,8 @@ class StockCardExport implements FromArray, WithEvents
         $data[] = ['Description: ' . ($this->supply->description ?: 'N/A'), '', '', '', '', ''];
         $data[] = ['Category: ' . ($this->supply->category ?: 'Uncategorized'), '', '', '', '', ''];
         $data[] = ['Unit: ' . $this->supply->unit, '', '', '', '', ''];
-        $data[] = ['Current Stock: ' . $this->supply->quantity, '', '', '', '', ''];
+        $data[] = ['Current Stock: ' . number_format($this->supply->quantity, 2), '', '', '', '', ''];
+        // Ensure consistent formatting with 2 decimals for stock quantities
         $data[] = ['', '', '', '', '', ''];
         $data[] = ['Date', 'Reference', 'Receipt Qty.', 'Issue Qty.', 'Office', 'Balance Qty.'];
 

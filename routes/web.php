@@ -20,7 +20,7 @@ use App\Http\Controllers\Client\AboutController;
 use Illuminate\Support\Facades\Route;
 
 // Root route - redirect to dashboard after login
-Route::get('/', function () {
+Route::post('/welcome', function () {
     return auth()->check() ? redirect('/client/dashboard') : redirect('/home');
 });
 

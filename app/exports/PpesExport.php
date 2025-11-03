@@ -6,16 +6,14 @@ use App\Models\Equipment;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithEvents;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithTitle;
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Worksheet\PageSetup;
 
-class PpesExport implements FromArray, WithEvents, WithColumnFormatting, ShouldAutoSize, WithTitle
+class PpesExport implements FromArray, WithEvents, ShouldAutoSize, WithTitle
 {
     protected $request;
 
@@ -28,35 +26,41 @@ class PpesExport implements FromArray, WithEvents, WithColumnFormatting, ShouldA
     {
         $query = Equipment::query();
 
-        // Apply same filters
+        // ✅ APPLY FILTERS BASED ON PAGE
         if ($this->request->filled('date_from')) {
             $query->whereDate('acquisition_date', '>=', $this->request->date_from);
         }
         if ($this->request->filled('date_to')) {
             $query->whereDate('acquisition_date', '<=', $this->request->date_to);
         }
-        if ($this->request->filled('condition')) {
-            $query->where('condition', $this->request->condition);
-        }
         if ($this->request->filled('classification')) {
             $query->where('classification', 'like', '%' . $this->request->classification . '%');
         }
+        if ($this->request->filled('search')) {
+            $search = $this->request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('article', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhere('property_number', 'like', "%{$search}%");
+            });
+        }
 
-        $equipment = $query->orderBy('acquisition_date', 'desc')
-            ->get();
+        $query->where('condition', 'unserviceable');
+        $equipment = $query->orderBy('acquisition_date', 'desc')->get();
 
-        $ppesItems = $equipment->map(function ($equipment) {
-            return (object) [
-                'date_acquired' => $equipment->acquisition_date ? $equipment->acquisition_date->format('m/d/Y') : '---',
-                'particulars_articles' => $equipment->article . ' - ' . $equipment->description,
-                'property_no' => $equipment->property_number ?: '---',
+        // ✅ MAP DATA
+        $ppesItems = $equipment->map(function ($item) {
+            return [
+                'date_acquired' => $item->acquisition_date ? $item->acquisition_date->format('m/d/Y') : '',
+                'particulars_articles' => $item->article . ' - ' . $item->description,
+                'property_no' => $item->property_number ?? '',
                 'qty' => 1,
-                'unit_cost' => $equipment->unit_value,
-                'total_cost' => $equipment->unit_value,
+                'unit_cost' => $item->unit_value ?? 0,
+                'total_cost' => $item->unit_value ?? 0,
                 'accumulated_depreciation' => 0,
                 'accumulated_impairment_losses' => 0,
-                'carrying_amount' => $equipment->unit_value,
-                'remarks' => $equipment->remarks ?: '---',
+                'carrying_amount' => $item->unit_value ?? 0,
+                'remarks' => $item->remarks ?? '',
                 'sale' => '',
                 'transfer' => '',
                 'destruction' => '',
@@ -68,77 +72,100 @@ class PpesExport implements FromArray, WithEvents, WithColumnFormatting, ShouldA
             ];
         });
 
-        // Prepare data for Excel
+        $header = [
+            'entity_name' => $this->request->entity_name ?? '',
+            'as_of' => $this->request->as_of ?? '',
+            'accountable_person' => $this->request->accountable_person ?? '',
+            'position' => $this->request->position ?? '',
+            'office' => $this->request->office ?? '',
+            'fund_cluster' => $this->request->fund_cluster ?? '',
+        ];
+
         $data = [];
 
-        // Build header values from request
-        $entityName = $this->request->query('entity_name') ?: '';
-        $accountablePerson = $this->request->query('accountable_person') ?: '';
-        $position = $this->request->query('position') ?: '';
-        $office = $this->request->query('office') ?: '';
-        $fundCluster = $this->request->query('fund_cluster') ?: '';
-        $asOfDate = $this->request->query('as_of');
-        $formattedDate = $asOfDate ? \Carbon\Carbon::parse($asOfDate)->format('F d, Y') : '';
-        $assumptionDate = $this->request->query('assumption_date') ?: '';
-
-        $data[] = ['REPORT ON THE PHYSICAL COUNT OF PROPERTY, PLANT AND EQUIPMENT', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['(ATI-RTC I)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = [$formattedDate ? 'As of ' . $formattedDate : '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        // ✅ REPORT HEADER (PLAIN FORMAT)
+        $data[] = ['INVENTORY AND INSPECTION REPORT OF UNSERVICEABLE PROPERTY'];
+        $data[] = ['(ATI-RTC I)'];
         $data[] = [''];
-        // Header grid layout matching screen view exactly (4 columns)
-        $data[] = ['', 'Entity Name:', $entityName, '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['', '', '(Name)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['', 'Accountable Officer:', $accountablePerson, '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['', '', '(Name)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['', 'Position:', $position, '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['', '', '(Designation)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['', 'Office:', $office, '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['', '', '(Station)', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = ['', 'Fund Cluster:', $fundCluster, '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['As of: ' . ($header['as_of'] ?: '_____________')];
+        $data[] = ['Entity Name: ' . ($header['entity_name'] ?: '_____________________________')];
+        $data[] = [''];
+        $data[] = [''];
+        $data[] = [''];
+        $data[] = [
+            '', '', '', '', '', '', '', '', '',
+            ($header['accountable_person'] ?: '_____________________________')
+        ];
+        $data[] = [
+            '', '', '', '', '', '', '', '', '',
+            '(Name of Accountable Officer)'
+        ];
+        $data[] = [
+            '', '', '', '', '', '', '', '', '',
+            ($header['position'] ?: '_____________________________')
+        ];
+        $data[] = [
+            '', '', '', '', '', '', '', '', '',
+            '(Designation)'
+        ];
+        $data[] = [
+            '', '', '', '', '', '', '', '', '',
+            ($header['office'] ?: '_____________________________')
+        ];
+        $data[] = [
+            '', '', '', '', '', '', '', '', '',
+            '(Station)'
+        ];
+        $data[] = [
+            'Fund Cluster: ' . ($header['fund_cluster'] ?: '___________')
+        ];
         $data[] = [''];
 
-        // Accountability text
-        $accountabilityText = 'For which ' . ($accountablePerson ?: '___') . ', ' . ($position ?: '___') . ', ' . ($office ?: '___') . ' is accountable, having assumed such accountability on ' . ($assumptionDate ? \Carbon\Carbon::parse($assumptionDate)->format('F d, Y') : '__________') . '.';
-        $data[] = [$accountabilityText, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-        $data[] = [''];
+        // ✅ TABLE HEADER
+        $data[] = [
+            'INVENTORY', '', '', '', '', '', '', '', '', '',
+            'INSPECTION and DISPOSAL', '', '', '', '',
+            'Appraised Value', 'RECORD OF SALES', ''
+        ];
+        $data[] = [
+            'Date Acquired', 'Particulars/Articles', 'Property No.', 'Qty', 'Unit Cost', 'Total Cost',
+            'Accumulated Depreciation', 'Accumulated Impairment Losses', 'Carrying Amount', 'Remarks',
+            'DISPOSAL', '', '', '', '',
+            '', 'OR No.', 'Amount'
+        ];
+        $data[] = [
+            '', '', '', '', '', '', '', '', '', '',
+            'Sale', 'Transfer', 'Destruction', 'Others (Specify)', 'Total',
+            '', '', ''
+        ];
+        $data[] = [
+            '(1)', '(2)', '(3)', '(4)', '(5)', '(6)', '(7)', '(8)', '(9)', '(10)',
+            '(11)', '(12)', '(13)', '(14)', '(15)', '(16)', '(17)', '(18)'
+        ];
 
-        // Add table headers
-        $data[] = ['INVENTORY', '', '', '', '', '', '', '', '', 'INSPECTION and DISPOSAL', '', '', '', '', 'Appraised Value', 'RECORD OF SALES', ''];
-        $data[] = ['Date Acquired', 'Particulars/ Articles', 'Property No.', 'Qty', 'Unit Cost', 'Total Cost', 'Accumulated Depreciation', 'Accumulated Impairment Losses', 'Carrying Amount', 'Remarks', 'DISPOSAL', '', '', '', '', 'OR No.', 'Amount', ''];
-        $data[] = ['', '', '', '', '', '', '', '', '', '', 'Sale', 'Transfer', 'Destruction', 'Others (Specify)', 'Total', '', '', ''];
-        $data[] = ['(1)', '(2)', '(3)', '(4)', '(5)', '(6)', '(7)', '(8)', '(9)', '(10)', '(11)', '(12)', '(13)', '(14)', '(15)', '(16)', '(17)', '(18)'];
-
-        // Add empty row after headers
-        $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''];
-
-        // Add table data
+        // ✅ TABLE DATA
         foreach ($ppesItems as $item) {
-                $data[] = [
-                    $item->date_acquired,
-                    $item->particulars_articles,
-                    $item->property_no,
-                    $item->qty,
-                    number_format((float) ($item->unit_cost ?? 0), 2),
-                    number_format((float) ($item->total_cost ?? 0), 2),
-                    number_format((float) ($item->accumulated_depreciation ?? 0), 2),
-                    number_format((float) ($item->accumulated_impairment_losses ?? 0), 2),
-                    number_format((float) ($item->carrying_amount ?? 0), 2),
-                    $item->remarks,
-                    $item->sale,
-                    $item->transfer,
-                    $item->destruction,
-                    $item->others,
-                    $item->total_disposal,
-                    number_format((float) ($item->appraised_value ?? 0), 2),
-                    $item->or_no,
-                    number_format((float) ($item->amount ?? 0), 2),
-                    '',
-                ];
+            $data[] = [
+                $item['date_acquired'],
+                $item['particulars_articles'],
+                $item['property_no'],
+                $item['qty'],
+                number_format($item['unit_cost'], 2),
+                number_format($item['total_cost'], 2),
+                number_format($item['accumulated_depreciation'], 2),
+                number_format($item['accumulated_impairment_losses'], 2),
+                number_format($item['carrying_amount'], 2),
+                $item['remarks'],
+                $item['sale'],
+                $item['transfer'],
+                $item['destruction'],
+                $item['others'],
+                $item['total_disposal'],
+                number_format((float)$item['appraised_value'], 2),
+                $item['or_no'],
+                number_format((float)$item['amount'], 2),
+            ];
         }
-
-        // Add footer
-        $data[] = [''];
-        $data[] = ['PANGASINAN'];
 
         return $data;
     }
@@ -146,71 +173,92 @@ class PpesExport implements FromArray, WithEvents, WithColumnFormatting, ShouldA
     public function registerEvents(): array
     {
         return [
-            AfterSheet::class => function(AfterSheet $event) {
+            AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
 
-                // Merge title rows
-                $sheet->mergeCells('A1:R1'); // Title spans all columns
+                // ✅ PAGE SETTINGS
+                $sheet->getPageSetup()->setOrientation(PageSetup::ORIENTATION_LANDSCAPE);
+                $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4);
+                $sheet->getPageMargins()->setTop(0.4)->setLeft(0.5)->setRight(0.5)->setBottom(0.4);
 
-                // Merge header info area - updated for new grid layout (4 columns)
-                $sheet->mergeCells('C5:R5'); // Entity Name value spans multiple columns
-                $sheet->mergeCells('C6:R6'); // (Name) label spans multiple columns
-                $sheet->mergeCells('C7:R7'); // Accountable Officer value spans multiple columns
-                $sheet->mergeCells('C8:R8'); // (Name) label spans multiple columns
-                $sheet->mergeCells('C9:R9'); // Position value spans multiple columns
-                $sheet->mergeCells('C10:R10'); // (Designation) label spans multiple columns
-                $sheet->mergeCells('C11:R11'); // Office value spans multiple columns
-                $sheet->mergeCells('C12:R12'); // (Station) label spans multiple columns
-                $sheet->mergeCells('C13:R13'); // Fund Cluster value spans multiple columns
+                // ✅ FONT & ALIGNMENT
+                $sheet->getStyle('A:R')->getFont()->setName('Arial')->setSize(10);
+                $sheet->getDefaultRowDimension()->setRowHeight(18);
 
-                // Style title
-                $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
-                $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(12);
+                // ✅ TITLE
+                $sheet->mergeCells('A1:R1');
+                $sheet->mergeCells('A2:R2');
+                $sheet->getStyle('A1:A2')->applyFromArray([
+                    'font' => ['bold' => true, 'size' => 13],
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                ]);
 
-                // Style header labels
-                $sheet->getStyle('B5:B13')->getFont()->setBold(true); // All header labels (Entity Name, Accountable Officer, Position, Office, Fund Cluster)
+                // ✅ HEADER AREA
+                $sheet->getStyle('A3:R15')->applyFromArray([
+                    'font' => ['size' => 10],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_LEFT,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                    ],
+                ]);
 
-                // Add borders around header fields to create box effect (4 columns)
-                $sheet->getStyle('A5:R6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Entity Name box
-                $sheet->getStyle('A7:R8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Accountable Officer box
-                $sheet->getStyle('A9:R10')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Position box
-                $sheet->getStyle('A11:R12')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Office box
-                $sheet->getStyle('A13:R13')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Fund Cluster box
+                // ✅ TABLE HEADER MERGING
+                $sheet->mergeCells('A17:J17');
+                $sheet->mergeCells('K17:O17');
+                $sheet->mergeCells('P17:P17');
+                $sheet->mergeCells('Q17:R17');
 
-                // Apply borders to table header area starting row ~16 (depends on header lines)
-                $headerStart = 16; // approximate row where table headers begin
-                $sheet->getStyle("A{$headerStart}:R{$headerStart}")->getFont()->setBold(true);
+                $sheet->mergeCells('A18:A20');
+                $sheet->mergeCells('B18:B20');
+                $sheet->mergeCells('C18:C20');
+                $sheet->mergeCells('D18:D20');
+                $sheet->mergeCells('E18:E20');
+                $sheet->mergeCells('F18:F20');
+                $sheet->mergeCells('G18:G20');
+                $sheet->mergeCells('H18:H20');
+                $sheet->mergeCells('I18:I20');
+                $sheet->mergeCells('J18:J20');
+                $sheet->mergeCells('K18:O18');
+                $sheet->mergeCells('P18:P20');
+                $sheet->mergeCells('Q18:Q20');
+                $sheet->mergeCells('R18:R20');
 
-                // Apply thin borders to all used cells
+                // ✅ HEADER STYLE
+                $sheet->getStyle('A17:R20')->applyFromArray([
+                    'font' => ['bold' => true],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                        'wrapText' => true,
+                    ],
+                    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+                ]);
+
+                // ✅ TABLE BODY STYLE
                 $highestRow = $sheet->getHighestRow();
-                $highestCol = $sheet->getHighestColumn();
-                $sheet->getStyle("A1:{$highestCol}{$highestRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle("A21:R{$highestRow}")->applyFromArray([
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                        'wrapText' => true,
+                    ],
+                    'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN]],
+                ]);
 
-                // Fill header columns background
-                $sheet->getStyle("A{$headerStart}:R{$headerStart}")->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F0F0F0');
+                // ✅ COLUMN WIDTHS
+                $widths = [
+                    'A' => 15, 'B' => 40, 'C' => 20, 'D' => 8, 'E' => 15, 'F' => 15,
+                    'G' => 20, 'H' => 20, 'I' => 15, 'J' => 20,
+                    'K' => 10, 'L' => 10, 'M' => 12, 'N' => 12, 'O' => 12,
+                    'P' => 15, 'Q' => 12, 'R' => 15,
+                ];
+                foreach ($widths as $col => $width) {
+                    $sheet->getColumnDimension($col)->setWidth($width);
+                }
 
-                // Right-align numeric columns (E,F,G,H,I and P,R)
-                $sheet->getStyle('E')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2);
-                $sheet->getStyle('F')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2);
-                $sheet->getStyle('G')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2);
-                $sheet->getStyle('H')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2);
-                $sheet->getStyle('I')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2);
-                $sheet->getStyle('P')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2);
-                $sheet->getStyle('R')->getNumberFormat()->setFormatCode(NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2);
+                // ✅ REMOVE BACKGROUND COLORS
+                $sheet->getStyle("A1:R{$highestRow}")->getFill()->setFillType('none');
             }
-        ];
-    }
-
-    public function columnFormats(): array
-    {
-        return [
-            'E' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
-            'F' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
-            'G' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
-            'H' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
-            'I' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
-            'P' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
-            'R' => NumberFormat::FORMAT_NUMBER_COMMA_SEPARATED2,
         ];
     }
 

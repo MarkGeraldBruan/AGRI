@@ -13,18 +13,18 @@ class PpesController extends Controller
 {
     public function index(Request $request)
     {
-        // Get equipment data for PPES report (focusing on unserviceable property)
+        // Get equipment data for PPES report (only unserviceable property)
         $query = Equipment::query();
 
-        // Apply filters
+        // Always filter for unserviceable equipment only
+        $query->where('condition', 'unserviceable');
+
+        // Apply other filters
         if ($request->filled('date_from')) {
             $query->whereDate('acquisition_date', '>=', $request->date_from);
         }
         if ($request->filled('date_to')) {
             $query->whereDate('acquisition_date', '<=', $request->date_to);
-        }
-        if ($request->filled('condition')) {
-            $query->where('condition', $request->condition);
         }
         if ($request->filled('classification')) {
             $query->where('classification', 'like', '%' . $request->classification . '%');
@@ -90,15 +90,15 @@ class PpesController extends Controller
     {
         $query = Equipment::query();
 
-        // Apply same filters
+        // Always filter for unserviceable equipment only
+        $query->where('condition', 'unserviceable');
+
+        // Apply other filters
         if ($request->filled('date_from')) {
             $query->whereDate('acquisition_date', '>=', $request->date_from);
         }
         if ($request->filled('date_to')) {
             $query->whereDate('acquisition_date', '<=', $request->date_to);
-        }
-        if ($request->filled('condition')) {
-            $query->where('condition', $request->condition);
         }
         if ($request->filled('classification')) {
             $query->where('classification', 'like', '%' . $request->classification . '%');

@@ -259,17 +259,26 @@
         }
 
         @media print {
+            /* Set proper page margins for complete visibility */
+            @page {
+                margin: 0.5cm;
+                size: A4;
+            }
+
             body {
-                font-family: 'DejaVu Sans Custom', 'DejaVu Sans', 'Times New Roman', serif;
+                font-family: 'DejaVu Sans', Arial, sans-serif;
                 font-size: 10px;
                 line-height: 1.4;
                 margin: 0;
-                padding: 10px;
+                padding: 0;
+                background: white !important;
+                text-align: center !important;
             }
 
             /* Show container and content */
             .container {
                 width: 100% !important;
+                max-width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
             }
@@ -283,6 +292,8 @@
             .rpc-ppe-content {
                 padding: 10px !important;
                 margin: 0 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
             }
 
             /* Show report info but hide header grid for print */
@@ -304,8 +315,8 @@
             .accountability-info {
                 display: block !important;
                 text-align: center;
-                margin: 20px 0;
-                padding: 15px;
+                margin: 15px 0;
+                padding: 10px;
                 background: white !important;
                 border-radius: 0 !important;
                 page-break-after: avoid;
@@ -313,7 +324,7 @@
 
             .accountability-info p {
                 margin: 0;
-                font-size: 12px;
+                font-size: 11px;
                 color: #000;
             }
 
@@ -326,7 +337,8 @@
                 text-align: center;
                 margin-bottom: 15px;
                 border-bottom: 2px solid #000;
-                padding-bottom: 10px;
+                padding-bottom: 8px;
+                page-break-after: avoid;
             }
 
             .report-header h1 {
@@ -338,41 +350,47 @@
 
             .report-header p {
                 font-size: 11px;
-                margin: 5px 0;
+                margin: 3px 0;
             }
 
             .equipment-table {
                 width: 100%;
                 border-collapse: collapse;
                 font-size: 8px;
-                margin-bottom: 20px;
+                margin: 0 auto 15px auto;
                 border: 1px solid #000;
+                table-layout: fixed;
             }
 
             .equipment-table th {
-                padding: 4px 2px;
+                padding: 3px 2px;
                 text-align: center;
                 font-weight: bold;
                 border: 1px solid #000;
                 background: #f0f0f0;
                 font-size: 7px;
                 text-transform: uppercase;
+                word-wrap: break-word;
             }
 
             .equipment-table td {
-                padding: 4px 2px;
+                padding: 3px 2px;
                 border: 1px solid #000;
-                font-size: 8px;
+                font-size: 7px;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
             }
 
             .classification-header-row {
                 background: #e0e0e0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
 
             .classification-header-row td {
                 font-weight: bold;
-                font-size: 9px;
-                padding: 6px 2px;
+                font-size: 8px;
+                padding: 4px 2px;
                 text-align: center;
             }
 
@@ -392,8 +410,14 @@
                 page-break-inside: avoid;
             }
 
-            @page {
-                margin: 0.5cm;
+            /* Ensure all content fits within page */
+            * {
+                box-sizing: border-box !important;
+            }
+
+            /* Prevent content overflow */
+            .rpc-ppe-content * {
+                max-width: 100% !important;
             }
         }
     </style>

@@ -41,6 +41,7 @@ class PropertyCardExport implements FromArray, WithEvents
             ($this->equipment->location ? $this->equipment->location : '') . ($this->equipment->location && $this->equipment->responsible_person ? ' / ' : '') . ($this->equipment->responsible_person ?: ''),
             1,
             number_format($this->equipment->unit_value, 2),
+            // Ensure consistent formatting with 2 decimals
             $this->equipment->condition
         ];
 

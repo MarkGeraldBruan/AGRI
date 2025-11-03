@@ -8,75 +8,89 @@
         /* Ensure dompdf can load a Unicode font that contains the ₱ glyph.
            Place DejaVuSans.ttf in public/fonts/DejaVuSans.ttf */
         @font-face {
-            font-family: 'DejaVu Sans Custom';
+            font-family: 'DejaVu Sans';
             src: url('file://{{ str_replace('\\','/', public_path('fonts/DejaVuSans.ttf')) }}') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
+        @page {
+            margin: 0.5cm;
+            size: A4;
+        }
         body {
             /* Use embedded DejaVu Sans to guarantee peso glyph rendering */
-            font-family: 'DejaVu Sans Custom', 'DejaVu Sans', 'Times New Roman', serif;
+            font-family: 'DejaVu Sans', 'Times New Roman', serif;
             font-size: 10px;
             line-height: 1.4;
             margin: 0;
-            padding: 10px;
+            padding: 0;
+            background: white !important;
         }
 
         .report-header {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             border-bottom: 2px solid #000;
-            padding-bottom: 10px;
+            padding-bottom: 8px;
+            page-break-after: avoid;
         }
 
         .report-header h1 {
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
             margin: 0;
             text-transform: uppercase;
         }
 
         .report-header p {
-            font-size: 11px;
-            margin: 5px 0;
+            font-size: 9px;
+            margin: 3px 0;
         }
 
         .entity-info {
             text-align: center;
-            margin: 15px 0;
-            font-size: 10px;
+            margin: 12px 0;
+            font-size: 9px;
+            page-break-after: avoid;
         }
 
         .accountability-info {
             text-align: center;
-            margin: 15px 0;
-            font-size: 10px;
-            padding: 8px;
+            margin: 12px 0;
+            font-size: 9px;
+            padding: 6px;
             border: 1px solid #000;
+            page-break-after: avoid;
         }
 
         .equipment-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 8px;
-            margin-bottom: 20px;
+            font-size: 7px;
+            margin-bottom: 15px;
             border: 1px solid #000;
+            table-layout: auto;
         }
 
         .equipment-table th {
-            padding: 4px 2px;
+            padding: 3px 1px;
             text-align: center;
             font-weight: bold;
             border: 1px solid #000;
             background: #f0f0f0;
             font-size: 7px;
             text-transform: uppercase;
+            white-space: nowrap;
+            vertical-align: middle;
         }
 
         .equipment-table td {
-            padding: 4px 2px;
+            padding: 3px 1px;
             border: 1px solid #000;
-            font-size: 8px;
+            font-size: 7px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            vertical-align: middle;
         }
 
         .classification-header-row {
@@ -85,8 +99,8 @@
 
         .classification-header-row td {
             font-weight: bold;
-            font-size: 9px;
-            padding: 6px 2px;
+            font-size: 8px;
+            padding: 4px 1px;
             text-align: center;
         }
 
@@ -103,13 +117,14 @@
         }
 
         .footer-info {
-            margin-top: 20px;
-            font-size: 9px;
+            margin-top: 15px;
+            font-size: 8px;
             text-align: center;
+            page-break-after: avoid;
         }
 
         .signature-section {
-            margin-top: 30px;
+            margin-top: 20px;
             display: table;
             width: 100%;
         }
@@ -122,8 +137,18 @@
         }
 
         .signature-line p {
-            margin: 5px 0;
-            font-size: 9px;
+            margin: 3px 0;
+            font-size: 8px;
+        }
+
+        /* Ensure all content fits within page */
+        * {
+            box-sizing: border-box !important;
+        }
+
+        /* Prevent content overflow */
+        .equipment-table {
+            max-width: 100% !important;
         }
     </style>
 </head>
@@ -143,79 +168,75 @@
     </div>
 
     @if($groupedEquipment->count() > 0)
-        @foreach($groupedEquipment as $classification => $equipmentItems)
-            <table class="equipment-table">
+        <table class="equipment-table">
                 <thead>
                     <tr>
-                        <th rowspan="2" style="width: 12%;">ARTICLE/ITEM</th>
-                        <th rowspan="2" style="width: 15%;">DESCRIPTION</th>
-                        <th rowspan="2" style="width: 10%;">PROPERTY NUMBER</th>
-                        <th rowspan="2" style="width: 8%;">UNIT OF MEASURE</th>
-                        <th rowspan="2" style="width: 8%;">UNIT VALUE</th>
-                        <th rowspan="2" style="width: 8%;">Acquisition Date</th>
-                        <th rowspan="2" style="width: 6%;">QUANTITY per PROPERTY CARD</th>
-                        <th rowspan="2" style="width: 6%;">QUANTITY per PHYSICAL COUNT</th>
-                        <th colspan="2" style="width: 10%;">SHORTAGE/OVERAGE</th>
-                        <th colspan="3" style="width: 17%;">REMARKS</th>
+                        <th rowspan="2">ARTICLE/ITEM</th>
+                        <th rowspan="2">DESCRIPTION</th>
+                        <th rowspan="2">PROPERTY NUMBER</th>
+                        <th rowspan="2">UNIT OF MEASURE</th>
+                        <th rowspan="2">UNIT VALUE</th>
+                        <th rowspan="2">Acquisition<br>Date</th>
+                        <th rowspan="2">QUANTITY per<br>PROPERTY CARD</th>
+                        <th rowspan="2">QUANTITY per<br>PHYSICAL COUNT</th>
+                        <th colspan="2" style="min-width: 50px;">SHORTAGE/<br>OVERAGE</th>
+                        <th colspan="3">REMARKS</th>
                     </tr>
                     <tr>
-                        <th style="width: 5%;">Quantity</th>
-                        <th style="width: 5%;">Value</th>
-                        <th style="width: 6%;">Person Responsible</th>
-                        <th style="width: 6%;">Responsibility Center</th>
-                        <th style="width: 5%;">Condition of Properties</th>
+                        <th>Quantity</th>
+                        <th>Value</th>
+                        <th>Person<br>Responsible</th>
+                        <th>Responsibility<br>Center</th>
+                        <th>Condition of<br>Properties</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Classification Header -->
-                    <tr class="classification-header-row">
-                        <td colspan="13">
-                            {{ strtoupper($classification ?: 'UNCLASSIFIED EQUIPMENT') }}
-                        </td>
-                    </tr>
+                    @foreach($groupedEquipment as $classification => $equipmentItems)
+                        <!-- Classification Header -->
+                        <tr class="classification-header-row">
+                            <td colspan="13">
+                                {{ strtoupper($classification ?: 'UNCLASSIFIED EQUIPMENT') }}
+                            </td>
+                        </tr>
 
-                    @php
-                        $groupedByArticle = $equipmentItems->groupBy('article');
-                    @endphp
+                        @php
+                            $groupedByArticle = $equipmentItems->groupBy('article');
+                        @endphp
 
-                    @foreach($groupedByArticle as $article => $items)
-                        @foreach($items as $index => $equipment)
-                            <tr>
-                                @if($index === 0)
-                                    <!-- Show article name only for first item -->
-                                    <td rowspan="{{ $items->count() }}" style="vertical-align: middle; font-weight: bold;">
-                                        {{ $article }}
+                        @foreach($groupedByArticle as $article => $items)
+                            @foreach($items as $index => $equipment)
+                                <tr>
+                                    @if($index === 0)
+                                        <!-- Show article name only for first item -->
+                                        <td rowspan="{{ $items->count() }}" style="vertical-align: middle; font-weight: bold;">
+                                            {{ $article }}
+                                        </td>
+                                    @endif
+
+                                    <td>{{ $equipment->description ?: '-' }}</td>
+                                    <td class="text-center">{{ $equipment->property_number }}</td>
+                                    <td class="text-center">{{ $equipment->unit_of_measurement }}</td>
+                                    <td class="text-right">{{ number_format($equipment->unit_value, 2) }}</td>
+                                    <td class="text-center">
+                                        {{ $equipment->acquisition_date ? $equipment->acquisition_date->format('M-d') : '-' }}
                                     </td>
-                                @endif
-
-                                <td>{{ $equipment->description ?: '-' }}</td>
-                                <td class="text-center">{{ $equipment->property_number }}</td>
-                                <td class="text-center">{{ $equipment->unit_of_measurement }}</td>
-                                <td class="text-right">{{ number_format($equipment->unit_value, 2) }}</td>
-                                <td class="text-center">
-                                    {{ $equipment->acquisition_date ? $equipment->acquisition_date->format('M-d') : '-' }}
-                                </td>
-                                                <td class="text-center">1</td>
-                                                <td class="text-center">1</td>
-                                                <td class="text-center">-</td>
-                                                <td class="text-center">-</td>
-                                <td class="text-center">
-                                    {{ $equipment->responsible_person ?: 'Unknown / Book of the Accountant' }}
-                                </td>
-                                <td class="text-center">
-                                    {{ $equipment->location ?: '-' }}
-                                </td>
-                                <td class="text-center">{{ $equipment->condition }}</td>
-                            </tr>
+                                    <td class="text-center">1</td>
+                                    <td class="text-center">1</td>
+                                    <td class="text-center">-</td>
+                                    <td class="text-center">-</td>
+                                    <td class="text-center remarks-cell">
+                                        {{ $equipment->responsible_person ?: 'Unknown / Book of the Accountant' }}
+                                    </td>
+                                    <td class="text-center remarks-cell">
+                                        {{ $equipment->location ?: '-' }}
+                                    </td>
+                                    <td class="text-center">{{ $equipment->condition }}</td>
+                                </tr>
+                            @endforeach
                         @endforeach
                     @endforeach
                 </tbody>
-            </table>
-
-            @if(!$loop->last)
-                <div class="page-break"></div>
-            @endif
-        @endforeach
+        </table>
     @endif
 
     <div class="footer-info">

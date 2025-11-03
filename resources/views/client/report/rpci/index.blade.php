@@ -222,17 +222,20 @@
         }
 
         @media print {
-            /* Hide browser default headers and footers */
+            /* Set proper page margins for complete visibility */
             @page {
                 margin: 0.5cm;
-                size: auto;
+                size: A4;
             }
 
-            /* Reset body and page styles */
+            /* Reset body and page styles to match PDF */
             body {
                 background: white !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                font-size: 12px !important;
+                font-family: 'DejaVu Sans', Arial, sans-serif !important;
+                line-height: 1.4 !important;
             }
 
             /* Hide all unnecessary elements */
@@ -292,6 +295,7 @@
             /* Show only content area */
             .container {
                 width: 100% !important;
+                max-width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
             }
@@ -305,13 +309,15 @@
             .rpci-content {
                 padding: 10px !important;
                 margin: 0 !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
             }
 
             /* Style the header for print */
             .report-header {
                 text-align: center;
-                margin-bottom: 20px;
-                padding-bottom: 10px;
+                margin-bottom: 15px;
+                padding-bottom: 8px;
                 border-bottom: 2px solid #000;
                 page-break-after: avoid;
             }
@@ -320,6 +326,7 @@
                 font-size: 14px;
                 margin: 2px 0;
                 color: #000;
+                font-weight: bold;
             }
 
             .report-header p {
@@ -331,8 +338,8 @@
             .accountability-info {
                 display: block !important;
                 text-align: center;
-                margin: 20px 0;
-                padding: 15px;
+                margin: 15px 0;
+                padding: 10px;
                 background: white !important;
                 border-radius: 0 !important;
                 page-break-after: avoid;
@@ -340,23 +347,26 @@
 
             .accountability-info p {
                 margin: 0;
-                font-size: 12px;
+                font-size: 11px;
                 color: #000;
             }
 
             /* Style the table for print */
             .report-table-container {
                 padding: 0 !important;
-                margin: 0 !important;
+                margin: 0 auto !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
+                width: 100% !important;
+                overflow-x: visible !important;
             }
 
             .report-table {
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 10px;
+                font-size: 9px;
                 page-break-inside: auto;
+                table-layout: fixed;
             }
 
             .report-table thead {
@@ -371,9 +381,11 @@
             .report-table th,
             .report-table td {
                 border: 1px solid #000 !important;
-                padding: 4px 2px !important;
+                padding: 3px 2px !important;
                 font-size: 8px !important;
                 text-align: center;
+                word-wrap: break-word;
+                overflow-wrap: break-word;
             }
 
             .report-table th {
@@ -381,6 +393,17 @@
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 font-weight: 600;
+                font-size: 8px !important;
+            }
+
+            /* Ensure all content fits within page */
+            * {
+                box-sizing: border-box !important;
+            }
+
+            /* Prevent content overflow */
+            .rpci-content * {
+                max-width: 100% !important;
             }
         }
     </style>

@@ -118,6 +118,7 @@ class RpcPpeExport implements FromArray, WithEvents
                     $propertyNumber = $item->property_number ?: '-';
                     $unitOfMeasure = $item->unit_of_measurement ?: '-';
                     $unitValue = $item->unit_value ? number_format((float) $item->unit_value, 2) : '0.00';
+                    // Ensure all numeric values are formatted consistently with 2 decimals
                     $acquisitionDate = $item->acquisition_date ? $item->acquisition_date->format('M-d') : '-';
                     $responsiblePerson = $item->responsible_person ?: 'Unknown / Book of the Accountant';
                     $location = $item->location ?: '-';

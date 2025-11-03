@@ -6,23 +6,82 @@
     <title>PPES - Inventory and Inspection Report of Unserviceable Property</title>
     <style>
         @font-face {
-            font-family: 'DejaVu Sans Custom';
+            font-family: 'DejaVu Sans';
             src: url('file://{{ str_replace('\\','/', public_path('fonts/DejaVuSans.ttf')) }}') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
-        body { font-family: 'DejaVu Sans Custom', Arial, sans-serif; font-size: 10px; margin: 0; padding: 20px; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { font-size: 14px; font-weight: bold; margin: 0; }
-        .header h2 { font-size: 12px; margin: 5px 0; }
-        .report-info { margin-bottom: 20px; }
-        .entity-info { display: flex; justify-content: space-between; margin-bottom: 20px; }
-        .accountable-info { text-align: center; margin-bottom: 20px; }
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 8px; }
-        th, td { border: 1px solid #000; padding: 4px; text-align: center; }
-        th { background-color: #f0f0f0; font-weight: bold; }
-        .footer { text-align: center; margin-top: 20px; font-weight: bold; }
+        @page {
+            margin: 0.5cm;
+            size: A4 landscape;
+        }
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            font-size: 10px;
+            margin: 0;
+            padding: 0;
+            line-height: 1.4;
+            background: white !important;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            page-break-after: avoid;
+        }
+        .header h1 { font-size: 12px; font-weight: bold; margin: 0; }
+        .header h2 { font-size: 10px; margin: 3px 0; }
+        .report-info {
+            margin-bottom: 15px;
+            page-break-after: avoid;
+        }
+        .entity-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .accountable-info {
+            text-align: center;
+            margin-bottom: 15px;
+            page-break-after: avoid;
+        }
+        .table-container {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 6px;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 2px 1px;
+            text-align: center;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            font-size: 6px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+            page-break-after: avoid;
+        }
+
+        /* Ensure all content fits within page */
+        * {
+            box-sizing: border-box !important;
+        }
+
+        /* Prevent content overflow */
+        .table-container, table {
+            max-width: 100% !important;
+        }
     </style>
 </head>
 <body>

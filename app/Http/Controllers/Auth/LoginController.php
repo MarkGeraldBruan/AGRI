@@ -46,7 +46,7 @@ class LoginController extends Controller
     public function attemptLogin(Request $request)
     {
         // Check if user exists and is active
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('emails', $request->email)->first();
 
         if (!$user) {
             return false;

@@ -13,6 +13,7 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 class RsmiExport implements FromArray, WithEvents
 {
     protected $request;
+    protected $dataRowCount = 0;
 
     public function __construct(Request $request)
     {
@@ -23,7 +24,6 @@ class RsmiExport implements FromArray, WithEvents
     {
         $query = Supplies::query();
 
-        // Apply same filters as controller
         if ($this->request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $this->request->date_from);
         }
@@ -31,8 +31,10 @@ class RsmiExport implements FromArray, WithEvents
             $query->whereDate('created_at', '<=', $this->request->date_to);
         }
         if ($this->request->filled('department')) {
-            $query->where('category', 'like', '%' . $this->request->department . '%')
+            $query->where(function ($q) {
+                $q->where('category', 'like', '%' . $this->request->department . '%')
                   ->orWhere('supplier', 'like', '%' . $this->request->department . '%');
+            });
         }
         if ($this->request->filled('status')) {
             if ($this->request->status === 'issued') {
@@ -45,50 +47,60 @@ class RsmiExport implements FromArray, WithEvents
         $supplies = $query->orderBy('created_at', 'desc')->get();
 
         $rsmiItems = $supplies->map(function ($supply) {
-            return (object) [
+            $unitCost = $supply->unit_price ?? 0;
+            $amount = $unitCost * ($supply->quantity ?? 0);
+
+            // Always include as numeric values, even if 0
+            $unitCostVal = (float) $unitCost;
+            $amountVal = (float) $amount;
+            $qtyVal = (int) ($supply->quantity ?? 0);
+
+            return [
                 'issue_no' => 'RSMI-' . now()->format('Y') . '-' . str_pad($supply->id, 4, '0', STR_PAD_LEFT),
                 'responsibility_center' => $supply->category ?? '---',
-                'stock_no' => '---',
+                'stock_no' => $supply->stock_no ?? '---',
                 'item' => $supply->name,
                 'unit' => $supply->unit,
-                'quantity_issued' => $supply->quantity,
-                'unit_cost' => $supply->unit_price,
-                'amount' => $supply->unit_price * $supply->quantity,
+                'quantity_issued' => (string) $qtyVal, // return as string to ensure display
+                'unit_cost' => $unitCostVal,
+                'amount' => $amountVal,
             ];
         });
 
-        // Build header values from request
-        $entityName = $this->request->query('entity_name') ?: '';
-        $accountablePerson = $this->request->query('accountable_person') ?: '';
-        $position = $this->request->query('position') ?: '';
-        $office = $this->request->query('office') ?: '';
-        $fundCluster = $this->request->query('fund_cluster') ?: '';
-        $asOfDate = $this->request->query('as_of');
-        $formattedDate = $asOfDate ? \Carbon\Carbon::parse($asOfDate)->format('F d, Y') : '';
-        $asOfMonth = $this->request->query('as_of') ? \Carbon\Carbon::parse($this->request->query('as_of'))->format('F Y') : now()->format('F Y');
-        $assumptionDate = $this->request->query('assumption_date') ?: '';
+        // store data row count for event styling
+        $this->dataRowCount = $rsmiItems->count();
+
+        // Header info (use input() so it works with POST as well)
+        $entityName = $this->request->input('entity_name', '');
+        $accountablePerson = $this->request->input('accountable_person', '');
+        $position = $this->request->input('position', '');
+        $office = $this->request->input('office', '');
+        $fundCluster = $this->request->input('fund_cluster', '');
+        $asOfMonth = $this->request->input('as_of')
+            ? \Carbon\Carbon::parse($this->request->input('as_of'))->format('F Y')
+            : now()->format('F Y');
+        $assumptionDate = $this->request->input('assumption_date', '');
 
         $data = [];
 
-        // Header rows - restructured to match screen view
-        $data[] = ['REPORT ON THE PHYSICAL COUNT OF INVENTORIES', '', '', '', '', '', '', '']; // Title
-        $data[] = [''];
-        $data[] = ['As of ' . $formattedDate, '', '', '', '', '', '', ''];
-        $data[] = [''];
-        // Header grid layout matching screen view exactly
-        $data[] = ['Entity Name:', $entityName, '', '', 'Accountable Officer:', $accountablePerson, '', ''];
-        $data[] = ['', '', '', '', '(Name)', '', '', ''];
-        $data[] = ['Position:', $position, '', '', 'Office:', $office, '', ''];
-        $data[] = ['', '', '', '', '(Designation)', '', '', ''];
-        $data[] = ['', '', '', '', '(Station)', '', '', ''];
-        $data[] = ['Fund Cluster:', $fundCluster, '', '', '', '', '', ''];
-        $data[] = [''];
+        // Title & Header (rows 1-6)
+        $data[] = ['Republic of the Philippines'];
+        $data[] = [$entityName ?: '____________________________'];
+        $data[] = ['Report of Supplies and Materials Issued'];
+        $data[] = ['For the Month of ' . $asOfMonth];
+        $data[] = ['Fund Cluster: ' . ($fundCluster ?: '________________________')];
+        $data[] = ['']; // row 6 blank
 
-        // Accountability text
-        $accountabilityText = 'For which ' . ($accountablePerson ?: '___') . ', ' . ($position ?: '___') . ', ' . ($office ?: '___') . ' is accountable, having assumed such accountability on ' . ($assumptionDate ? \Carbon\Carbon::parse($assumptionDate)->format('F d, Y') : '__________') . '.';
-        $data[] = [$accountabilityText, '', '', '', '', '', '', ''];
-        $data[] = [''];
+        // Accountability line (row 7)
+        $accountabilityText = 'For which ' . ($accountablePerson ?: '_________________') . ', ' .
+            ($position ?: '_________________') . ', ' .
+            ($office ?: '_________________') . ' is accountable, having assumed such accountability on ' .
+            ($assumptionDate ? \Carbon\Carbon::parse($assumptionDate)->format('F d, Y') : '_________________') . '.';
+        $data[] = [$accountabilityText];
 
+        $data[] = ['']; // row 8 blank
+
+        // Table header (row 9)
         $data[] = [
             'RIS No.',
             'Responsibility Center Code',
@@ -97,63 +109,74 @@ class RsmiExport implements FromArray, WithEvents
             'Unit',
             'Quantity Issued',
             'Unit Cost',
-            'Amount',
+            'Amount'
         ];
 
-        // Table rows
+        // Table rows start at row 10
         foreach ($rsmiItems as $item) {
             $data[] = [
-                $item->issue_no,
-                $item->responsibility_center,
-                $item->stock_no,
-                $item->item,
-                $item->unit,
-                // ensure quantity is numeric
-                (float) $item->quantity_issued,
-                // ensure numeric unit cost and amount
-                (float) $item->unit_cost,
-                (float) $item->amount,
+                $item['issue_no'],
+                $item['responsibility_center'],
+                $item['stock_no'],
+                $item['item'],
+                $item['unit'],
+                $item['quantity_issued'], // integer
+                number_format($item['unit_cost'], 2), // formatted as 0.00
+                number_format($item['amount'], 2), // formatted as 0.00
             ];
         }
 
-        // Recapitulation separators and blocks
-        $data[] = ['', '', '', '', '', '', '', ''];
-        $data[] = ['Recapitulation:', '', '', '', '', '', '', ''];
-        $data[] = ['Stock No.', 'Quantity', '', '', '', '', '', ''];
+        // After table: one blank row
+        $data[] = [''];
 
-        $recapLeft = $rsmiItems->groupBy('stock_no')->map(function ($group) {
+        // Recapitulation header row
+        $data[] = ['Recapitulation:', '', '', '', 'Recapitulation:', '', '', ''];
+        $data[] = ['Stock No.', 'Quantity', '', '', 'Unit Cost', 'Total Cost', 'UACS Object Code', ''];
+
+        // Prepare recapitulation left (group by stock_no)
+        $recapLeft = $rsmiItems->groupBy('stock_no')->map(function ($group, $stock) {
+            $qty = $group->sum(function ($i) {
+                return $i['quantity_issued'] ?? 0;
+            });
             return [
-                'stock_no' => $group->first()->stock_no ?? '---',
-                'quantity' => $group->sum('quantity_issued'),
+                'stock_no' => $stock,
+                'quantity' => (int) $qty,
             ];
         })->values();
 
-        foreach ($recapLeft as $r) {
-            $data[] = [$r['stock_no'], (float) $r['quantity'], '', '', '', '', '', ''];
+        // Prepare recapitulation right totals
+        $recapRightTotals = [
+            'unit_cost_total' => $rsmiItems->sum(function ($i) {
+                return $i['unit_cost'] ?? 0;
+            }),
+            'amount_total' => $rsmiItems->sum(function ($i) {
+                return $i['amount'] ?? 0;
+            }),
+            'uacs' => '---'
+        ];
+
+        // We will print as many rows as $recapLeft (at least 1)
+        $maxRecapRows = max($recapLeft->count(), 1);
+        for ($i = 0; $i < $maxRecapRows; $i++) {
+            $leftStock = $recapLeft[$i]['stock_no'] ?? '---';
+            $leftQty = $recapLeft[$i]['quantity'] ?? 0;
+
+            // Show right totals always, even if 0
+            $rightUnit = ($i === 0) ? (float) $recapRightTotals['unit_cost_total'] : null;
+            $rightTotal = ($i === 0) ? (float) $recapRightTotals['amount_total'] : null;
+            $rightUacs = ($i === 0) ? $recapRightTotals['uacs'] : null;
+
+            $data[] = [
+                $leftStock,
+                $leftQty,
+                '',
+                '',
+                number_format($rightUnit, 2),
+                number_format($rightTotal, 2),
+                $rightUacs,
+                ''
+            ];
         }
-
-        $data[] = ['', '', '', '', '', '', '', ''];
-        $data[] = ['Recapitulation:', '', '', '', '', '', '', ''];
-        $data[] = ['Unit Cost', 'Total Cost', 'UACS Object Code', '', '', '', '', ''];
-
-        $recapRight = [
-            'unit_cost' => $rsmiItems->sum('unit_cost'),
-            'total_cost' => $rsmiItems->sum('amount'),
-            'uacs_code' => '---',
-        ];
-
-        $data[] = [
-            (float) $recapRight['unit_cost'],
-            (float) $recapRight['total_cost'],
-            $recapRight['uacs_code'],
-            '', '', '', '', ''
-        ];
-
-        // Signature / prepared by block (leave blanks that will be filled in PDF or Excel)
-        $data[] = ['', '', '', '', '', '', '', ''];
-        $data[] = ['Prepared by:', '', '', '', '', '', 'Checked by:', ''];
-        $data[] = [$accountablePerson, '', '', '', '', '', '', $position];
-        $data[] = [$office, '', '', '', '', '', '', 'Assumption Date: ' . ($this->request->query('assumption_date', ''))];
 
         return $data;
     }
@@ -164,62 +187,126 @@ class RsmiExport implements FromArray, WithEvents
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
 
-                // Appendix right
-                $sheet->mergeCells('H1:H1');
-                $sheet->getStyle('H1')->getFont()->setItalic(true)->setSize(14);
-                $sheet->getStyle('H1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                // Rows: header occupies 1-7, blank 8, table header row 9, data starts row 10
+                $tableHeaderRow = 9;
+                $tableFirstDataRow = 10;
+                $dataEndRow = $tableHeaderRow + $this->dataRowCount; // last data row (if zero rows, equals 9)
 
-                // Title
-                $sheet->mergeCells('A3:H3');
-                $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(16);
-                $sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-
-                // Header styling for entity info - updated for new grid layout
-                $sheet->getStyle('A5:A9')->getFont()->setBold(true); // All header labels
-
-                // Add borders around header fields to create box effect
-                $sheet->getStyle('A5:H5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Entity Name box
-                $sheet->getStyle('A6:H6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Accountable Officer box
-                $sheet->getStyle('A7:H7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Position box
-                $sheet->getStyle('A8:H8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Office box
-                $sheet->getStyle('A9:H9')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Fund Cluster box
-
-                // Merge header info area - updated for new grid layout
-                $sheet->mergeCells('B5:H5'); // Entity Name value spans multiple columns
-                $sheet->mergeCells('B6:H6'); // Accountable Officer value spans multiple columns
-                $sheet->mergeCells('B7:H7'); // Position value spans multiple columns
-                $sheet->mergeCells('B8:H8'); // Office value spans multiple columns
-                $sheet->mergeCells('B9:H9'); // Fund Cluster value spans multiple columns
-
-                // Table header style (row 11)
-                $sheet->getStyle('A11:H11')->getFont()->setBold(true);
-                $sheet->getStyle('A11:H11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle('A11:H11')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-                // Extra: ensure Unit Cost cell is centered and bold
-                $sheet->getStyle('G11')->getFont()->setBold(true);
-                $sheet->getStyle('G11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle('G11')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-
-                // Set column widths
-                $sheet->getColumnDimension('A')->setWidth(18);
-                $sheet->getColumnDimension('B')->setWidth(25);
-                $sheet->getColumnDimension('C')->setWidth(12);
-                $sheet->getColumnDimension('D')->setWidth(40);
-                $sheet->getColumnDimension('E')->setWidth(8);
-                $sheet->getColumnDimension('F')->setWidth(14);
-                $sheet->getColumnDimension('G')->setWidth(14);
-                $sheet->getColumnDimension('H')->setWidth(16);
-
-                // Apply number format for currency columns (G and H) and center alignment for quantities
+                // compute highestRow for final ranges (some recaps and blank rows exist)
                 $highestRow = $sheet->getHighestRow();
-                // Data rows start at row 18 after header row 17
-                $sheet->getStyle("G18:G{$highestRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-                $sheet->getStyle("H18:H{$highestRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-                $sheet->getStyle("F18:F{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-                // Set borders for the data range (from header row 17 to last row)
-                $sheet->getStyle("A17:H{$highestRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                // --- Header styling & merging ---
+                $sheet->mergeCells('A1:H1');
+                $sheet->getStyle('A1')->applyFromArray([
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                    'font' => ['bold' => true, 'size' => 14],
+                ]);
+
+                $sheet->mergeCells('A2:H2');
+                $sheet->getStyle('A2')->applyFromArray([
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                    'font' => ['size' => 12],
+                ]);
+
+                $sheet->mergeCells('A3:H3');
+                $sheet->getStyle('A3')->applyFromArray([
+                    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                    'font' => ['bold' => true, 'size' => 13],
+                ]);
+
+                $sheet->mergeCells('A4:H4');
+                $sheet->getStyle('A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+                $sheet->mergeCells('A5:H5');
+                $sheet->getStyle('A5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+                // Accountability line (center + wrap + row height)
+                $sheet->mergeCells('A7:H7');
+                $sheet->getStyle('A7')->applyFromArray([
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                        'wrapText' => true
+                    ],
+                    'font' => ['size' => 11]
+                ]);
+                $sheet->getRowDimension(7)->setRowHeight(36);
+
+                // --- Table header ---
+                $sheet->getStyle("A{$tableHeaderRow}:H{$tableHeaderRow}")->applyFromArray([
+                    'font' => ['bold' => true],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER
+                    ],
+                    'borders' => [
+                        'allBorders' => ['borderStyle' => Border::BORDER_THIN]
+                    ]
+                ]);
+
+                // --- Column widths ---
+                $sheet->getColumnDimension('A')->setWidth(30); // RIS No.
+                $sheet->getColumnDimension('B')->setWidth(30); // Responsibility Center Code
+                $sheet->getColumnDimension('C')->setWidth(18); // Stock No.
+                $sheet->getColumnDimension('D')->setWidth(55); // Item
+                $sheet->getColumnDimension('E')->setWidth(12); // Unit
+                $sheet->getColumnDimension('F')->setWidth(18); // Quantity Issued
+                $sheet->getColumnDimension('G')->setWidth(20); // Unit Cost
+                $sheet->getColumnDimension('H')->setWidth(20); // Amount
+
+                // --- Data table borders (only where data exists) ---
+                if ($this->dataRowCount > 0) {
+                    $sheet->getStyle("A{$tableHeaderRow}:H{$dataEndRow}")->applyFromArray([
+                        'borders' => [
+                            'allBorders' => ['borderStyle' => Border::BORDER_THIN]
+                        ]
+                    ]);
+                } else {
+                    // still put border on header row
+                    $sheet->getStyle("A{$tableHeaderRow}:H{$tableHeaderRow}")->applyFromArray([
+                        'borders' => [
+                            'allBorders' => ['borderStyle' => Border::BORDER_THIN]
+                        ]
+                    ]);
+                }
+
+                // --- Number formatting: Unit Cost (G) and Amount (H) only for data rows and recap rows ---
+                $unitCostRange = "G{$tableFirstDataRow}:G{$dataEndRow}";
+                $amountRange = "H{$tableFirstDataRow}:H{$dataEndRow}";
+                if ($this->dataRowCount > 0) {
+                    $sheet->getStyle($unitCostRange)->getNumberFormat()->setFormatCode('#,##0.00');
+                    $sheet->getStyle($amountRange)->getNumberFormat()->setFormatCode('#,##0.00');
+                }
+
+                // Also apply number format to recapitulation right side (we'll approximate rows)
+                // Find recap start row: it's dataEndRow + 2 (one blank) + 1 (recap header) + 1 (recap labels) => +3
+                $recapStartRow = $dataEndRow + 2;
+                $recapDataStartRow = $recapStartRow + 2; // the first recap data row
+                $recapDataEndRow = $highestRow; // safe upper bound (we only format cells that exist)
+                // Apply formatting to potential recap columns if they exist
+                $sheet->getStyle("E{$recapDataStartRow}:F{$recapDataEndRow}")->getNumberFormat()->setFormatCode('#,##0.00');
+
+                // --- Center all used cells vertically & horizontally ---
+                $sheet->getStyle("A1:H{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER)->setVertical(Alignment::VERTICAL_CENTER);
+
+                // --- Recapitulation section merging & borders ---
+                $sheet->mergeCells("A{$recapStartRow}:B{$recapStartRow}");
+                $sheet->mergeCells("E{$recapStartRow}:G{$recapStartRow}");
+                $sheet->getStyle("A{$recapStartRow}:G{$recapStartRow}")->getFont()->setBold(true);
+
+                // Add border boxes for left and right recap (3 rows high to match layout)
+                $sheet->getStyle("A" . ($recapStartRow + 1) . ":B" . ($recapStartRow + 3))
+                      ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $sheet->getStyle("E" . ($recapStartRow + 1) . ":G" . ($recapStartRow + 3))
+                      ->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+                // Make quantity center in recap left
+                $sheet->getStyle("B" . ($recapStartRow + 1) . ":B" . ($recapStartRow + 3))
+                      ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+                // Done.
             }
         ];
     }
 }
+ 

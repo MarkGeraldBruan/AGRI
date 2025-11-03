@@ -6,29 +6,92 @@
     <title>RSMI - Report of Supplies and Materials Issued</title>
     <style>
         @font-face {
-            font-family: 'DejaVu Sans Custom';
+            font-family: 'DejaVu Sans';
             src: url('file://{{ str_replace('\\','/', public_path('fonts/DejaVuSans.ttf')) }}') format('truetype');
             font-weight: normal;
             font-style: normal;
         }
-        body { font-family: 'DejaVu Sans Custom', Arial, sans-serif; margin: 0; padding: 20px; font-size: 12px; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #000; padding-bottom: 10px; }
-        .header h1 { margin: 0; font-size: 16px; font-weight: bold; }
-        .header p { margin: 5px 0; }
-        .accountability { text-align: center; margin: 20px 0; padding: 10px; }
+        @page {
+            margin: 0.5cm;
+            size: A4;
+        }
+        body {
+            font-family: 'DejaVu Sans', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            line-height: 1.4;
+            background: white !important;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 8px;
+            page-break-after: avoid;
+        }
+        .header h1 { margin: 0; font-size: 14px; font-weight: bold; }
+        .header p { margin: 3px 0; }
+        .accountability {
+            text-align: center;
+            margin: 15px 0;
+            padding: 10px;
+            page-break-after: avoid;
+        }
 
-        .table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        .table th, .table td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px; }
-        .table th { background-color: #f0f0f0; font-weight: bold; }
-        .recap-container { width: 100%; margin-top: 20px; }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            table-layout: fixed;
+        }
+        .table th, .table td {
+            border: 1px solid #000;
+            padding: 3px 2px;
+            text-align: center;
+            font-size: 8px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        .table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            font-size: 8px;
+        }
+        .recap-container { width: 100%; margin-top: 15px; }
         .recap-table { width: 100%; border-collapse: collapse; }
-        .recap-table td { vertical-align: top; padding: 0 10px; }
+        .recap-table td { vertical-align: top; padding: 0 8px; }
         .recap-table td:first-child { width: 50%; }
         .recap { width: 100%; }
-        .recap table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
-        .recap th, .recap td { border: 1px solid #000; padding: 4px; text-align: center; font-size: 10px; height: 20px; }
-        .recap th { background-color: #f0f0f0; font-weight: bold; }
-        .recap p { margin: 5px 0; font-weight: bold; font-size: 10px; }
+        .recap table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 9px;
+            table-layout: fixed;
+        }
+        .recap th, .recap td {
+            border: 1px solid #000;
+            padding: 3px 2px;
+            text-align: center;
+            font-size: 7px;
+            height: 18px;
+            word-wrap: break-word;
+        }
+        .recap th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        .recap p { margin: 3px 0; font-weight: bold; font-size: 9px; }
+
+        /* Ensure all content fits within page */
+        * {
+            box-sizing: border-box !important;
+        }
+
+        /* Prevent content overflow */
+        .table, .recap table {
+            max-width: 100% !important;
+        }
     </style>
 </head>
 <body>

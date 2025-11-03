@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace App\Exports;
 
@@ -9,6 +9,7 @@ use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class RpciExport implements FromArray, WithEvents
 {
@@ -23,7 +24,7 @@ class RpciExport implements FromArray, WithEvents
     {
         $query = Supplies::query();
 
-        // Apply same filters as controller
+        // Apply filters
         if ($this->request->filled('date_from')) {
             $query->whereDate('created_at', '>=', $this->request->date_from);
         }
@@ -31,8 +32,10 @@ class RpciExport implements FromArray, WithEvents
             $query->whereDate('created_at', '<=', $this->request->date_to);
         }
         if ($this->request->filled('department')) {
-            $query->where('category', 'like', '%' . $this->request->department . '%')
+            $query->where(function ($q) {
+                $q->where('category', 'like', '%' . $this->request->department . '%')
                   ->orWhere('supplier', 'like', '%' . $this->request->department . '%');
+            });
         }
         if ($this->request->filled('status')) {
             if ($this->request->status === 'issued') {
@@ -44,119 +47,84 @@ class RpciExport implements FromArray, WithEvents
 
         $supplies = $query->orderBy('created_at', 'desc')->get();
 
+        // Format each row based on table format
         $rpciItems = $supplies->map(function ($supply) {
-            return (object) [
-                'issue_no' => 'Rpci-' . now()->format('Y') . '-' . str_pad($supply->id, 4, '0', STR_PAD_LEFT),
-                'responsibility_center' => $supply->category ?? '---',
-                'stock_no' => '---',
-                'item' => $supply->name,
-                'unit' => $supply->unit,
-                'quantity_issued' => $supply->quantity,
-                'unit_cost' => $supply->unit_price,
-                'amount' => $supply->unit_price * $supply->quantity,
+            return [
+                'article' => '---',
+                'description' => $supply->name ?? '',
+                'stock_number' => '---',
+                'unit_of_measure' => $supply->unit ?? '',
+                'unit_value' => (float) ($supply->unit_price ?? 0.00), // return as float for Excel formatting
+                'balance_per_card' => (string) ((int) ($supply->quantity ?? 0)), // return as string to ensure display
+                'on_hand_per_count' => (string) ((int) ($supply->quantity ?? 0)), // return as string to ensure display
+                'shortage_overage_quantity' => '0', // return as string to ensure display
+                'shortage_overage_value' => '0.00', // return as string to ensure display
+                'remarks' => '---',
             ];
         });
 
-        // Build header values from request
-        $entityName = $this->request->query('entity_name') ?: '';
-        $accountablePerson = $this->request->query('accountable_person') ?: '';
-        $position = $this->request->query('position') ?: '';
-        $office = $this->request->query('office') ?: '';
-        $fundCluster = $this->request->query('fund_cluster') ?: '';
-        $asOfDate = $this->request->query('as_of');
-        $formattedDate = $asOfDate ? \Carbon\Carbon::parse($asOfDate)->format('F d, Y') : '';
-        $asOfMonth = $this->request->query('as_of') ? \Carbon\Carbon::parse($this->request->query('as_of'))->format('F Y') : now()->format('F Y');
-        $assumptionDate = $this->request->query('assumption_date') ?: '';
+        $asOfRaw = $this->request->query('as_of');
+        $header = [
+            'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : now()->format('F d, Y'),
+            'fund_cluster' => $this->request->query('fund_cluster', ''),
+            'accountable_person' => $this->request->query('accountable_person', ''),
+            'position' => $this->request->query('position', ''),
+            'office' => $this->request->query('office', ''),
+            'assumption_date' => $this->request->query('assumption_date', ''),
+        ];
 
         $data = [];
 
-        // Header rows - restructured to match screen view
-        $data[] = ['REPORT ON THE PHYSICAL COUNT OF INVENTORIES', '', '', '', '', '', '', '']; // Title
-        $data[] = [''];
-        $data[] = ['As of ' . $formattedDate, '', '', '', '', '', '', ''];
-        $data[] = [''];
-        // Header grid layout matching screen view exactly
-        $data[] = ['Entity Name:', $entityName, '', '', 'Accountable Officer:', $accountablePerson, '', ''];
-        $data[] = ['', '', '', '', '(Name)', '', '', ''];
-        $data[] = ['Position:', $position, '', '', 'Office:', $office, '', ''];
-        $data[] = ['', '', '', '', '(Designation)', '', '', ''];
-        $data[] = ['', '', '', '', '(Station)', '', '', ''];
-        $data[] = ['Fund Cluster:', $fundCluster, '', '', '', '', '', ''];
-        $data[] = [''];
+        // Report headers
+        $data[] = ['REPORT ON THE PHYSICAL COUNT OF INVENTORIES', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['COMMON SUPPLIES AND EQUIPMENT', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['(REGULAR)', '', '', '', '', '', '', '', '', ''];
+        $data[] = ['As of ' . $header['as_of'], '', '', '', '', '', '', '', '', ''];
+        $data[] = ['Fund Cluster : ' . $header['fund_cluster'], '', '', '', '', '', '', '', '', ''];
+        $data[] = ['', '', '', '', '', '', '', '', '', ''];
 
-        // Accountability text
-        $accountabilityText = 'For which ' . ($accountablePerson ?: '___') . ', ' . ($position ?: '___') . ', ' . ($office ?: '___') . ' is accountable, having assumed such accountability on ' . ($assumptionDate ? \Carbon\Carbon::parse($assumptionDate)->format('F d, Y') : '__________') . '.';
-        $data[] = [$accountabilityText, '', '', '', '', '', '', ''];
-        $data[] = [''];
-
+        // Accountability section
         $data[] = [
-            'RIS No.',
-            'Responsibility Center Code',
-            'Stock No.',
-            'Item',
-            'Unit',
-            'Quantity Issued',
-            'Unit Cost',
-            'Amount',
+            'For which ' . ($header['accountable_person'] ?: '_________') . ', ' .
+            ($header['position'] ?: '_________') . ', ' .
+            ($header['office'] ?: '_________') . ' is accountable, having assumed such accountability',
+            '', '', '', '', '', '', '', '', ''
         ];
+        $data[] = [
+            'on ' . ($header['assumption_date']
+                ? \Carbon\Carbon::parse($header['assumption_date'])->format('F d, Y')
+                : '__________') . '.',
+            '', '', '', '', '', '', '', '', ''
+        ];
+        $data[] = ['', '', '', '', '', '', '', '', '', ''];
 
-        // Table rows
+        // Table headers
+        $data[] = [
+            'Article', 'Description', 'Stock Number', 'Unit of Measure', 'Unit Value',
+            'Balance Per Card', 'On Hand Per Count', 'Shortage/Overage', '', 'Remarks'
+        ];
+        $data[] = ['', '', '', '', '', '', '', 'Quantity', 'Value', ''];
+
+        // Table body
         foreach ($rpciItems as $item) {
             $data[] = [
-                $item->issue_no,
-                $item->responsibility_center,
-                $item->stock_no,
-                $item->item,
-                $item->unit,
-                // ensure quantity is numeric
-                (float) $item->quantity_issued,
-                // ensure numeric unit cost and amount
-                (float) $item->unit_cost,
-                (float) $item->amount,
+                $item['article'],
+                $item['description'],
+                $item['stock_number'],
+                $item['unit_of_measure'],
+                $item['unit_value'],
+                $item['balance_per_card'],
+                $item['on_hand_per_count'],
+                $item['shortage_overage_quantity'],
+                $item['shortage_overage_value'],
+                $item['remarks'],
             ];
         }
-
-        // Recapitulation separators and blocks
-        $data[] = ['', '', '', '', '', '', '', ''];
-        $data[] = ['Recapitulation:', '', '', '', '', '', '', ''];
-        $data[] = ['Stock No.', 'Quantity', '', '', '', '', '', ''];
-
-        $recapLeft = $rpciItems->groupBy('stock_no')->map(function ($group) {
-            return [
-                'stock_no' => $group->first()->stock_no ?? '---',
-                'quantity' => $group->sum('quantity_issued'),
-            ];
-        })->values();
-
-        foreach ($recapLeft as $r) {
-            $data[] = [$r['stock_no'], (float) $r['quantity'], '', '', '', '', '', ''];
-        }
-
-        $data[] = ['', '', '', '', '', '', '', ''];
-        $data[] = ['Recapitulation:', '', '', '', '', '', '', ''];
-        $data[] = ['Unit Cost', 'Total Cost', 'UACS Object Code', '', '', '', '', ''];
-
-        $recapRight = [
-            'unit_cost' => $rpciItems->sum('unit_cost'),
-            'total_cost' => $rpciItems->sum('amount'),
-            'uacs_code' => '---',
-        ];
-
-        $data[] = [
-            (float) $recapRight['unit_cost'],
-            (float) $recapRight['total_cost'],
-            $recapRight['uacs_code'],
-            '', '', '', '', ''
-        ];
-
-        // Signature / prepared by block (leave blanks that will be filled in PDF or Excel)
-        $data[] = ['', '', '', '', '', '', '', ''];
-        $data[] = ['Prepared by:', '', '', '', '', '', 'Checked by:', ''];
-        $data[] = [$accountablePerson, '', '', '', '', '', '', $position];
-        $data[] = [$office, '', '', '', '', '', '', 'Assumption Date: ' . ($this->request->query('assumption_date', ''))];
 
         return $data;
     }
+
+
 
     public function registerEvents(): array
     {
@@ -164,62 +132,83 @@ class RpciExport implements FromArray, WithEvents
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet->getDelegate();
 
-                // Appendix right
-                $sheet->mergeCells('H1:H1');
-                $sheet->getStyle('H1')->getFont()->setItalic(true)->setSize(14);
-                $sheet->getStyle('H1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
+                // Merge and center headers
+                foreach ([1, 2, 3] as $row) {
+                    $sheet->mergeCells("A{$row}:J{$row}");
+                    $sheet->getStyle("A{$row}")->getFont()->setBold(true)->setSize(15);
+                    $sheet->getStyle("A{$row}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                }
 
-                // Title
-                $sheet->mergeCells('A3:H3');
-                $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(16);
-                $sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->mergeCells('A4:J4');
+                $sheet->mergeCells('A5:J5');
+                $sheet->getStyle('A4:A5')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle('A4:A5')->getFont()->setSize(12)->setBold(true);
 
-                // Header styling for entity info - updated for new grid layout
-                $sheet->getStyle('A5:A9')->getFont()->setBold(true); // All header labels
+                // Accountability section
+                $sheet->mergeCells('A7:J7');
+                $sheet->mergeCells('A8:J8');
+                $sheet->getStyle('A7:A8')->getAlignment()
+                      ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                      ->setVertical(Alignment::VERTICAL_CENTER);
 
-                // Add borders around header fields to create box effect
-                $sheet->getStyle('A5:H5')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Entity Name box
-                $sheet->getStyle('A6:H6')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Accountable Officer box
-                $sheet->getStyle('A7:H7')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Position box
-                $sheet->getStyle('A8:H8')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Office box
-                $sheet->getStyle('A9:H9')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_MEDIUM); // Fund Cluster box
+                // Table header merge
+                $sheet->mergeCells('H10:I10');
+                $sheet->getStyle('A10:J11')->getFont()->setBold(true)->setSize(11);
+                $sheet->getStyle('A10:J11')->getAlignment()
+                      ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                      ->setVertical(Alignment::VERTICAL_CENTER);
+                $sheet->getStyle('A10:J11')->getBorders()->getAllBorders()
+                      ->setBorderStyle(Border::BORDER_THIN);
 
-                // Merge header info area - updated for new grid layout
-                $sheet->mergeCells('B5:H5'); // Entity Name value spans multiple columns
-                $sheet->mergeCells('B6:H6'); // Accountable Officer value spans multiple columns
-                $sheet->mergeCells('B7:H7'); // Position value spans multiple columns
-                $sheet->mergeCells('B8:H8'); // Office value spans multiple columns
-                $sheet->mergeCells('B9:H9'); // Fund Cluster value spans multiple columns
+                // Column widths
+                $widths = [
+                    'A' => 20,
+                    'B' => 45,
+                    'C' => 20,
+                    'D' => 20,
+                    'E' => 18,
+                    'F' => 18,
+                    'G' => 18,
+                    'H' => 18,
+                    'I' => 18,
+                    'J' => 25,
+                ];
+                foreach ($widths as $col => $width) {
+                    $sheet->getColumnDimension($col)->setWidth($width);
+                }
 
-                // Table header style (row 11)
-                $sheet->getStyle('A11:H11')->getFont()->setBold(true);
-                $sheet->getStyle('A11:H11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle('A11:H11')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-                // Extra: ensure Unit Cost cell is centered and bold
-                $sheet->getStyle('G11')->getFont()->setBold(true);
-                $sheet->getStyle('G11')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle('G11')->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-
-                // Set column widths
-                $sheet->getColumnDimension('A')->setWidth(18);
-                $sheet->getColumnDimension('B')->setWidth(25);
-                $sheet->getColumnDimension('C')->setWidth(12);
-                $sheet->getColumnDimension('D')->setWidth(40);
-                $sheet->getColumnDimension('E')->setWidth(8);
-                $sheet->getColumnDimension('F')->setWidth(14);
-                $sheet->getColumnDimension('G')->setWidth(14);
-                $sheet->getColumnDimension('H')->setWidth(16);
-
-                // Apply number format for currency columns (G and H) and center alignment for quantities
+                // Format table data (no color, plain text)
                 $highestRow = $sheet->getHighestRow();
-                // Data rows start at row 18 after header row 17
-                $sheet->getStyle("G18:G{$highestRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-                $sheet->getStyle("H18:H{$highestRow}")->getNumberFormat()->setFormatCode('#,##0.00');
-                $sheet->getStyle("F18:F{$highestRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("A12:J{$highestRow}")
+                      ->getAlignment()
+                      ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+                      ->setVertical(Alignment::VERTICAL_CENTER);
+                $sheet->getStyle("A12:J{$highestRow}")
+                      ->getBorders()
+                      ->getAllBorders()
+                      ->setBorderStyle(Border::BORDER_THIN);
 
-                // Set borders for the data range (from header row 17 to last row)
-                $sheet->getStyle("A17:H{$highestRow}")->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-            }
+                // Wrap text for Description
+                $sheet->getStyle("B12:B{$highestRow}")
+                      ->getAlignment()->setWrapText(true);
+
+                // Set specific number formats for numeric columns
+                $sheet->getStyle("E12:E{$highestRow}")
+                      ->getNumberFormat()
+                      ->setFormatCode(NumberFormat::FORMAT_NUMBER_00); // Unit Value with .00
+                $sheet->getStyle("F12:F{$highestRow}")
+                      ->getNumberFormat()
+                      ->setFormatCode(NumberFormat::FORMAT_NUMBER); // Balance Per Card as integer
+                $sheet->getStyle("G12:G{$highestRow}")
+                      ->getNumberFormat()
+                      ->setFormatCode(NumberFormat::FORMAT_NUMBER); // On Hand Per Count as integer
+                $sheet->getStyle("H12:H{$highestRow}")
+                      ->getNumberFormat()
+                      ->setFormatCode(NumberFormat::FORMAT_NUMBER); // Shortage/Overage Quantity as integer
+                $sheet->getStyle("I12:I{$highestRow}")
+                      ->getNumberFormat()
+                      ->setFormatCode(NumberFormat::FORMAT_NUMBER_00); // Shortage/Overage Value with .00
+            },
         ];
     }
 }
