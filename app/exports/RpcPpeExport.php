@@ -26,20 +26,16 @@ class RpcPpeExport implements FromArray, WithEvents
             ->orderBy('property_number');
 
         // Apply filters if provided
+        if ($this->request->filled('date_from')) {
+            $query->whereDate('acquisition_date', '=', $this->request->date_from);
+        }
+
         if ($this->request->filled('classification')) {
-            $query->where('classification', $this->request->classification);
+            $query->where('article', $this->request->classification);
         }
 
         if ($this->request->filled('condition')) {
             $query->where('condition', $this->request->condition);
-        }
-
-        if ($this->request->filled('date_from')) {
-            $query->whereDate('acquisition_date', '>=', $this->request->date_from);
-        }
-
-        if ($this->request->filled('date_to')) {
-            $query->whereDate('acquisition_date', '<=', $this->request->date_to);
         }
 
         $equipment = $query->get();
@@ -50,8 +46,8 @@ class RpcPpeExport implements FromArray, WithEvents
         $position = $this->request->query('position') ?: '';
         $office = $this->request->query('office') ?: '';
         $fundCluster = $this->request->query('fund_cluster') ?: '';
-        $asOfDate = $this->request->query('as_of');
-        $formattedDate = $asOfDate ? \Carbon\Carbon::parse($asOfDate)->format('F d, Y') : '';
+        $asOfRaw = $this->request->query('as_of');
+        $formattedDate = $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : '';
         $assumptionDate = $this->request->query('assumption_date') ?: '';
 
         $data = [];

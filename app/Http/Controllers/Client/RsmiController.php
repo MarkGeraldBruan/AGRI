@@ -19,15 +19,10 @@ class RsmiController extends Controller
 
         // Apply filters
         if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
+            $query->whereDate('purchase_date', '=', $request->date_from);
         }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-        if ($request->filled('department')) {
-            // Assuming department filter on category or supplier, since no direct department field
-            $query->where('category', 'like', '%' . $request->department . '%')
-                  ->orWhere('supplier', 'like', '%' . $request->department . '%');
+        if ($request->filled('description')) {
+            $query->where('name', 'like', '%' . $request->description . '%');
         }
         if ($request->filled('status')) {
             if ($request->status === 'issued') {
@@ -66,9 +61,11 @@ class RsmiController extends Controller
             'uacs_code' => '---', // Placeholder, can be updated if UACS code is available
         ];
 
-        $asOfRaw = $request->query('as_of');
+        // Get unique names for dropdown (choices of items like ballpen, etc.)
+        $descriptions = Supplies::whereNotNull('name')->where('name', '!=', '')->distinct()->pluck('name')->sort()->values();
+
         $header = [
-            'as_of' => $asOfRaw ? Carbon::parse($asOfRaw)->format('F Y') : now()->format('F Y'),
+            'as_of' => $request->query('as_of') ? Carbon::parse($request->query('as_of'))->format('F Y') : '',
             'entity_name' => $request->query('entity_name', ''),
             'fund_cluster' => $request->query('fund_cluster', ''),
             'accountable_person' => $request->query('accountable_person', ''),
@@ -84,6 +81,7 @@ class RsmiController extends Controller
             'recapLeft' => $recapLeft,
             'recapRight' => $recapRight,
             'header' => $header,
+            'descriptions' => $descriptions,
         ]);
     }
 
@@ -93,14 +91,10 @@ class RsmiController extends Controller
 
         // Apply same filters as index
         if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
+            $query->whereDate('purchase_date', '=', $request->date_from);
         }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-        if ($request->filled('department')) {
-            $query->where('category', 'like', '%' . $request->department . '%')
-                  ->orWhere('supplier', 'like', '%' . $request->department . '%');
+        if ($request->filled('description')) {
+            $query->where('name', 'like', '%' . $request->description . '%');
         }
         if ($request->filled('status')) {
             if ($request->status === 'issued') {
@@ -138,9 +132,8 @@ class RsmiController extends Controller
             'uacs_code' => '---', // Placeholder, can be updated if UACS code is available
         ];
 
-        $asOfRaw = $request->query('as_of');
         $header = [
-            'as_of' => $asOfRaw ? Carbon::parse($asOfRaw)->format('F Y') : now()->format('F Y'),
+            'as_of' => $request->query('as_of') ? Carbon::parse($request->query('as_of'))->format('F Y') : '',
             'entity_name' => $request->query('entity_name', ''),
             'fund_cluster' => $request->query('fund_cluster', ''),
             'accountable_person' => $request->query('accountable_person', ''),

@@ -492,9 +492,14 @@
                 <div class="filters-section">
                     <form method="GET" action="{{ route('client.report.rpc-ppe') }}" class="filters-form">
                         <div class="filter-group">
-                            <label>Classification</label>
+                            <label>Date From</label>
+                            <input type="date" name="date_from" value="{{ request('date_from') }}">
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Article</label>
                             <select name="classification">
-                                <option value="">All Classifications</option>
+                                <option value="">All Articles</option>
                                 @foreach($classifications as $class)
                                     <option value="{{ $class }}" {{ request('classification') == $class ? 'selected' : '' }}>
                                         {{ $class }}
@@ -510,16 +515,6 @@
                                 <option value="Serviceable" {{ request('condition') == 'Serviceable' ? 'selected' : '' }}>Serviceable</option>
                                 <option value="Unserviceable" {{ request('condition') == 'Unserviceable' ? 'selected' : '' }}>Unserviceable</option>
                             </select>
-                        </div>
-
-                        <div class="filter-group">
-                            <label>Date From</label>
-                            <input type="date" name="date_from" value="{{ request('date_from') }}">
-                        </div>
-
-                        <div class="filter-group">
-                            <label>Date To</label>
-                            <input type="date" name="date_to" value="{{ request('date_to') }}">
                         </div>
 
                         <div class="filter-actions">
@@ -540,11 +535,10 @@
                         <input type="hidden" name="classification" value="{{ request('classification') }}">
                         <input type="hidden" name="condition" value="{{ request('condition') }}">
                         <input type="hidden" name="date_from" value="{{ request('date_from') }}">
-                        <input type="hidden" name="date_to" value="{{ request('date_to') }}">
 
                         <div class="filter-group">
                             <label>As of</label>
-                            <input type="date" name="as_of" value="{{ request('as_of') }}">
+<input type="date" name="as_of" value="{{ request('as_of') ?? '' }}">
                         </div>
                         <div class="filter-group">
                             <label>Entity Name</label>

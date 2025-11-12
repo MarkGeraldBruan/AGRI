@@ -457,14 +457,9 @@
                         </div>
 
                         <div class="filter-group">
-                            <label>Date To</label>
-                            <input type="date" name="date_to" value="{{ request('date_to') }}">
-                        </div>
-
-                        <div class="filter-group">
-                            <label>Classification</label>
+                            <label>Article</label>
                             <select name="classification">
-                                <option value="">All Classifications</option>
+                                <option value="">All Articles</option>
                                 @foreach($classifications as $class)
                                     <option value="{{ $class }}" {{ request('classification') == $class ? 'selected' : '' }}>
                                         {{ $class }}
@@ -487,14 +482,13 @@
                 {{-- Header input form --}}
                 <div class="filters-section" style="margin-top:20px;">
                     <form method="get" class="filters-form">
-                        {{-- preserve current filters as hidden inputs --}}
-                        <input type="hidden" name="date_from" value="{{ request('date_from') }}">
-                        <input type="hidden" name="date_to" value="{{ request('date_to') }}">
-                        <input type="hidden" name="classification" value="{{ request('classification') }}">
+                    {{-- preserve current filters as hidden inputs --}}
+                    <input type="hidden" name="date_from" value="{{ request('date_from') }}">
+                    <input type="hidden" name="classification" value="{{ request('classification') }}">
 
                         <div class="filter-group">
                             <label>As of</label>
-                            <input type="date" name="as_of" value="{{ request('as_of') }}">
+<input type="date" name="as_of" value="{{ request('as_of') ?? '' }}">
                         </div>
                         <div class="filter-group">
                             <label>Entity Name</label>

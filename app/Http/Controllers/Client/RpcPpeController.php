@@ -19,20 +19,20 @@ class RpcPpeController extends Controller
             ->orderBy('property_number');
 
         // Apply filters if provided
+        if ($request->filled('date_from')) {
+            $equipmentQuery->whereDate('acquisition_date', '=', $request->date_from);
+        }
+
         if ($request->filled('classification')) {
-            $equipmentQuery->where('classification', $request->classification);
+            $equipmentQuery->where('article', $request->classification);
         }
 
         if ($request->filled('condition')) {
             $equipmentQuery->where('condition', $request->condition);
         }
 
-        if ($request->filled('date_from')) {
-            $equipmentQuery->whereDate('acquisition_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $equipmentQuery->whereDate('acquisition_date', '<=', $request->date_to);
+        if ($request->filled('description')) {
+            $equipmentQuery->where('description', 'like', '%' . $request->description . '%');
         }
 
         $allEquipment = $equipmentQuery->get();
@@ -40,11 +40,11 @@ class RpcPpeController extends Controller
         // Group equipment by classification
         $groupedEquipment = $allEquipment->groupBy('classification');
 
-        // Get all unique classifications for filter dropdown
-        $classifications = Equipment::whereNotNull('classification')
-            ->where('classification', '!=', '')
+        // Get all unique articles (equipment names) for filter dropdown
+        $classifications = Equipment::whereNotNull('article')
+            ->where('article', '!=', '')
             ->distinct()
-            ->pluck('classification')
+            ->pluck('article')
             ->sort()
             ->values();
 
@@ -54,7 +54,6 @@ class RpcPpeController extends Controller
         $serviceableCount = $allEquipment->where('condition', 'Serviceable')->count();
         $unserviceableCount = $allEquipment->where('condition', 'Unserviceable')->count();
 
-        // Build header values from request - only populate if provided
         $header = [
             'as_of' => $request->query('as_of') ? \Carbon\Carbon::parse($request->query('as_of'))->format('F d, Y') : '',
             'entity_name' => $request->query('entity_name') ?: '',
@@ -87,20 +86,16 @@ class RpcPpeController extends Controller
             ->orderBy('property_number');
 
         // Apply filters if provided
+        if ($request->filled('date_from')) {
+            $equipmentQuery->whereDate('acquisition_date', '=', $request->date_from);
+        }
+
         if ($request->filled('classification')) {
-            $equipmentQuery->where('classification', $request->classification);
+            $equipmentQuery->where('article', $request->classification);
         }
 
         if ($request->filled('condition')) {
             $equipmentQuery->where('condition', $request->condition);
-        }
-
-        if ($request->filled('date_from')) {
-            $equipmentQuery->whereDate('acquisition_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $equipmentQuery->whereDate('acquisition_date', '<=', $request->date_to);
         }
 
         $allEquipment = $equipmentQuery->get();
@@ -108,7 +103,6 @@ class RpcPpeController extends Controller
         // Group equipment by classification
         $groupedEquipment = $allEquipment->groupBy('classification');
 
-        // Build header values from request - only populate if provided
         $header = [
             'as_of' => $request->query('as_of') ? \Carbon\Carbon::parse($request->query('as_of'))->format('F d, Y') : '',
             'entity_name' => $request->query('entity_name') ?: '',

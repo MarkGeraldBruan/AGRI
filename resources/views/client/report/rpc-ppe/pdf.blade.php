@@ -155,7 +155,7 @@
 <body>
     <div class="report-header">
         <h1>REPORT ON THE PHYSICAL COUNT OF PROPERTY, PLANT AND EQUIPMENT</h1>
-        <p>As of {{ $header['as_of'] }}</p>
+<p>As of {!! $header['as_of'] ?: '______' !!}</p>
     </div>
 
     <div class="entity-info">

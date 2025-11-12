@@ -91,7 +91,7 @@
     </div>
 
     <div class="report-info">
-        <p><strong>As of {{ $header['as_of'] ?? now()->format('F d, Y') }}</strong></p>
+        <p><strong>As of {!! $header['as_of'] ?: '______' !!}</strong></p>
 
         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
             <div style="flex:1;">

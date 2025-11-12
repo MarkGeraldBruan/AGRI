@@ -75,7 +75,7 @@
         <h1>REPORT ON THE PHYSICAL COUNT OF INVENTORIES</h1>
         <h1>COMMON SUPPLIES AND EQUIPMENTS</h1>
         <h1>(REGULAR)</h1>
-        <p>As of {!! isset($header['as_of']) && trim($header['as_of']) !== '' ? e($header['as_of']) : '______' !!}</p>
+        <p>As of {!! $header['as_of'] ?: '______' !!}</p>
         <p>Fund Cluster : {!! isset($header['fund_cluster']) && trim($header['fund_cluster']) !== '' ? e($header['fund_cluster']) : '______' !!}</p>
     </div>
 

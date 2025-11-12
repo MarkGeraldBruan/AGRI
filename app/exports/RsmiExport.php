@@ -25,16 +25,10 @@ class RsmiExport implements FromArray, WithEvents
         $query = Supplies::query();
 
         if ($this->request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $this->request->date_from);
+            $query->whereDate('purchase_date', '=', $this->request->date_from);
         }
-        if ($this->request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $this->request->date_to);
-        }
-        if ($this->request->filled('department')) {
-            $query->where(function ($q) {
-                $q->where('category', 'like', '%' . $this->request->department . '%')
-                  ->orWhere('supplier', 'like', '%' . $this->request->department . '%');
-            });
+        if ($this->request->filled('description')) {
+            $query->where('name', 'like', '%' . $this->request->description . '%');
         }
         if ($this->request->filled('status')) {
             if ($this->request->status === 'issued') {
@@ -76,9 +70,8 @@ class RsmiExport implements FromArray, WithEvents
         $position = $this->request->input('position', '');
         $office = $this->request->input('office', '');
         $fundCluster = $this->request->input('fund_cluster', '');
-        $asOfMonth = $this->request->input('as_of')
-            ? \Carbon\Carbon::parse($this->request->input('as_of'))->format('F Y')
-            : now()->format('F Y');
+        $asOfRaw = $this->request->input('as_of');
+        $asOfMonth = $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F Y') : '';
         $assumptionDate = $this->request->input('assumption_date', '');
 
         $data = [];

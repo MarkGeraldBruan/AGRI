@@ -1,23 +1,25 @@
-# Excel Reports Fix - TODO List
+# TODO: Fix "AS OF" field in all reports
 
-## Overview
-Fix all Excel export classes to match screen views with proper headers, titles, and table formatting.
+## Controllers
+- [ ] Update RpcPpeController.php: Change 'as_of' to use request('as_of') formatted or blank
+- [ ] Update PpesController.php: Change 'as_of' to use request('as_of') formatted or blank
+- [ ] Update RpciController.php: Change 'as_of' to use request('as_of') formatted or blank
+- [ ] Update RsmiController.php: Change 'as_of' to use request('as_of') formatted or blank
 
-## Export Classes to Fix
-- [ ] PpesExport.php - Change title and restructure header grid
-- [ ] RpcPpeExport.php - Complete header grid structure
-- [ ] RpciExport.php - Add proper header structure and title
-- [ ] RsmiExport.php - Add proper header structure and title
-- [ ] PropertyCardExport.php - Ensure proper formatting
-- [ ] StockCardExport.php - Ensure proper formatting
+## Views (Index)
+- [ ] Update rpc-ppe/index.blade.php: Remove default value from "As of" input
+- [ ] Update ppes/index.blade.php: Remove default value from "As of" input
+- [ ] Update rpci/index.blade.php: Remove default value from "As of" input
+- [ ] Update rsmi/index.blade.php: Remove default value from "As of" input
 
-## Testing
-- [ ] Test each export after fixes
-- [ ] Verify headers match screen layout
-- [ ] Verify table formatting and borders
-- [ ] Verify column widths are optimal
+## Views (PDF)
+- [ ] Update rpc-ppe/pdf.blade.php: Show '______' if blank
+- [ ] Update ppes/pdf.blade.php: Show '______' if blank
+- [ ] Update rpci/pdf.blade.php: Show '______' if blank (if exists)
+- [ ] Update rsmi/pdf.blade.php: Show '______' if blank (if exists)
 
-## Status
-- RpcPpeExport.php: Partially fixed, needs completion
-- PpesExport.php: Needs major restructuring
-- Others: Need header and formatting fixes
+## Exports
+- [x] Update RpcPpeExport.php: Use formatted date or '______'
+- [x] Update PpesExport.php: Use formatted date or '______'
+- [x] Update RpciExport.php: Use formatted date or '______'
+- [x] Update RsmiExport.php: Use formatted date or '______'

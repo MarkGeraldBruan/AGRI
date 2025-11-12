@@ -28,13 +28,13 @@ class PpesExport implements FromArray, WithEvents, ShouldAutoSize, WithTitle
 
         // ✅ APPLY FILTERS BASED ON PAGE
         if ($this->request->filled('date_from')) {
-            $query->whereDate('acquisition_date', '>=', $this->request->date_from);
+            $query->whereDate('acquisition_date', '=', $this->request->date_from);
         }
         if ($this->request->filled('date_to')) {
             $query->whereDate('acquisition_date', '<=', $this->request->date_to);
         }
         if ($this->request->filled('classification')) {
-            $query->where('classification', 'like', '%' . $this->request->classification . '%');
+            $query->where('article', 'like', '%' . $this->request->classification . '%');
         }
         if ($this->request->filled('search')) {
             $search = $this->request->search;
@@ -72,9 +72,10 @@ class PpesExport implements FromArray, WithEvents, ShouldAutoSize, WithTitle
             ];
         });
 
+        $asOfRaw = $this->request->query('as_of');
         $header = [
             'entity_name' => $this->request->entity_name ?? '',
-            'as_of' => $this->request->as_of ?? '',
+            'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : '',
             'accountable_person' => $this->request->accountable_person ?? '',
             'position' => $this->request->position ?? '',
             'office' => $this->request->office ?? '',

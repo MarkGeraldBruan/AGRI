@@ -535,12 +535,15 @@
                         <input type="date" id="date_from" name="date_from" value="{{ request('date_from') }}">
                     </div>
                     <div class="filter-group">
-                        <label for="date_to">Date To</label>
-                        <input type="date" id="date_to" name="date_to" value="{{ request('date_to') }}">
-                    </div>
-                    <div class="filter-group">
-                        <label for="department">Department</label>
-                        <input type="text" id="department" name="department" placeholder="Enter department" value="{{ request('department') }}">
+                        <label for="description">Description</label>
+                        <select id="description" name="description">
+                            <option value="">All Descriptions</option>
+                            @foreach($descriptions as $desc)
+                                <option value="{{ $desc }}" {{ request('description') == $desc ? 'selected' : '' }}>
+                                    {{ $desc }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="filter-group">
                         <label for="status">Status</label>
@@ -566,13 +569,12 @@
                 <form method="get" class="filters-form">
                     {{-- preserve current filters as hidden inputs --}}
                     <input type="hidden" name="date_from" value="{{ request('date_from') }}">
-                    <input type="hidden" name="date_to" value="{{ request('date_to') }}">
-                    <input type="hidden" name="department" value="{{ request('department') }}">
+                    <input type="hidden" name="description" value="{{ request('description') }}">
                     <input type="hidden" name="status" value="{{ request('status') }}">
 
                     <div class="filter-group">
                         <label>As of</label>
-                        <input type="date" name="as_of" value="{{ request('as_of') ?? now()->format('Y-m-d') }}">
+<input type="date" name="as_of" value="{{ request('as_of') ?? '' }}">
                     </div>
                     <div class="filter-group">
                         <label>Entity Name</label>

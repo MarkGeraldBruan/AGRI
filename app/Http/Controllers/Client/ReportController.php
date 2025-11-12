@@ -37,14 +37,10 @@ class ReportController extends Controller
         $query = \App\Models\Supplies::query();
 
         if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
+            $query->whereDate('purchase_date', '=', $request->date_from);
         }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-        if ($request->filled('department')) {
-            $query->where('category', 'like', '%' . $request->department . '%')
-                  ->orWhere('supplier', 'like', '%' . $request->department . '%');
+        if ($request->filled('description')) {
+            $query->where('name', 'like', '%' . $request->description . '%');
         }
         if ($request->filled('status')) {
             if ($request->status === 'issued') {
@@ -71,7 +67,7 @@ class ReportController extends Controller
             ];
         });
 
-        $asOfRaw = $request->query('as_of');
+        $asOfRaw = $request->query('date_from') ?: $request->query('as_of');
         $header = [
             // as_of shown formatted, but allow empty for other fields so the view can render blanks
             'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : now()->format('F d, Y'),
@@ -93,14 +89,10 @@ class ReportController extends Controller
         $query = \App\Models\Supplies::query();
 
         if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
+            $query->whereDate('purchase_date', '=', $request->date_from);
         }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-        if ($request->filled('department')) {
-            $query->where('category', 'like', '%' . $request->department . '%')
-                  ->orWhere('supplier', 'like', '%' . $request->department . '%');
+        if ($request->filled('description')) {
+            $query->where('name', 'like', '%' . $request->description . '%');
         }
         if ($request->filled('status')) {
             if ($request->status === 'issued') {
@@ -127,7 +119,7 @@ class ReportController extends Controller
             ];
         });
 
-        $asOfRaw = $request->query('as_of');
+        $asOfRaw = $request->query('date_from') ?: $request->query('as_of');
         $header = [
             'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : now()->format('F d, Y'),
             'entity_name' => $request->query('entity_name', ''),

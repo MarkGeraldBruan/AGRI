@@ -26,16 +26,10 @@ class RpciExport implements FromArray, WithEvents
 
         // Apply filters
         if ($this->request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $this->request->date_from);
+            $query->whereDate('purchase_date', '=', $this->request->date_from);
         }
-        if ($this->request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $this->request->date_to);
-        }
-        if ($this->request->filled('department')) {
-            $query->where(function ($q) {
-                $q->where('category', 'like', '%' . $this->request->department . '%')
-                  ->orWhere('supplier', 'like', '%' . $this->request->department . '%');
-            });
+        if ($this->request->filled('description')) {
+            $query->where('name', 'like', '%' . $this->request->description . '%');
         }
         if ($this->request->filled('status')) {
             if ($this->request->status === 'issued') {
@@ -65,7 +59,7 @@ class RpciExport implements FromArray, WithEvents
 
         $asOfRaw = $this->request->query('as_of');
         $header = [
-            'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : now()->format('F d, Y'),
+            'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : '',
             'fund_cluster' => $this->request->query('fund_cluster', ''),
             'accountable_person' => $this->request->query('accountable_person', ''),
             'position' => $this->request->query('position', ''),

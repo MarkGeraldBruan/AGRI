@@ -21,13 +21,13 @@ class PpesController extends Controller
 
         // Apply other filters
         if ($request->filled('date_from')) {
-            $query->whereDate('acquisition_date', '>=', $request->date_from);
+            $query->whereDate('acquisition_date', '=', $request->date_from);
         }
         if ($request->filled('date_to')) {
             $query->whereDate('acquisition_date', '<=', $request->date_to);
         }
         if ($request->filled('classification')) {
-            $query->where('classification', 'like', '%' . $request->classification . '%');
+            $query->where('article', 'like', '%' . $request->classification . '%');
         }
 
         // Get all equipment for PPES report
@@ -58,18 +58,16 @@ class PpesController extends Controller
                 ];
             });
 
-        // Get all unique classifications for filter dropdown
-        $classifications = Equipment::whereNotNull('classification')
-            ->where('classification', '!=', '')
+        // Get all unique articles (equipment names) for filter dropdown
+        $classifications = Equipment::whereNotNull('article')
+            ->where('article', '!=', '')
             ->distinct()
-            ->pluck('classification')
+            ->pluck('article')
             ->sort()
             ->values();
 
-        // normalize 'as_of' to always be a human friendly formatted date (e.g. "October 18, 2025")
-        $asOfRaw = $request->input('as_of');
         $header = [
-            'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : '',
+            'as_of' => $request->input('as_of') ? \Carbon\Carbon::parse($request->input('as_of'))->format('F d, Y') : '',
             'entity_name' => $request->input('entity_name') ?: '',
             'fund_cluster' => $request->input('fund_cluster') ?: '',
             'accountable_person' => $request->input('accountable_person') ?: '',
@@ -95,13 +93,13 @@ class PpesController extends Controller
 
         // Apply other filters
         if ($request->filled('date_from')) {
-            $query->whereDate('acquisition_date', '>=', $request->date_from);
+            $query->whereDate('acquisition_date', '=', $request->date_from);
         }
         if ($request->filled('date_to')) {
             $query->whereDate('acquisition_date', '<=', $request->date_to);
         }
         if ($request->filled('classification')) {
-            $query->where('classification', 'like', '%' . $request->classification . '%');
+            $query->where('article', 'like', '%' . $request->classification . '%');
         }
 
         $ppesItems = $query->orderBy('acquisition_date', 'desc')
@@ -129,9 +127,8 @@ class PpesController extends Controller
                 ];
             });
 
-        $asOfRaw = $request->input('as_of');
         $header = [
-            'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : '',
+            'as_of' => $request->input('as_of') ? \Carbon\Carbon::parse($request->input('as_of'))->format('F d, Y') : '',
             'entity_name' => $request->input('entity_name') ?: '',
             'fund_cluster' => $request->input('fund_cluster') ?: '',
             'accountable_person' => $request->input('accountable_person') ?: '',
