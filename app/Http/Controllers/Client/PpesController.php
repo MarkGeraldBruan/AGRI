@@ -7,7 +7,7 @@ use App\Models\Equipment;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\PpesExport;
+use App\Exports\IirupExport;
 
 class PpesController extends Controller
 {
@@ -20,10 +20,11 @@ class PpesController extends Controller
         $query->where('condition', 'unserviceable');
 
         // Apply other filters
-        if ($request->filled('date_from')) {
-            $query->whereDate('acquisition_date', '=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('acquisition_date', [$request->date_from, $request->date_to]);
+        } elseif ($request->filled('date_from')) {
+            $query->whereDate('acquisition_date', '>=', $request->date_from);
+        } elseif ($request->filled('date_to')) {
             $query->whereDate('acquisition_date', '<=', $request->date_to);
         }
         if ($request->filled('classification')) {
@@ -34,16 +35,17 @@ class PpesController extends Controller
         $ppesItems = $query->orderBy('acquisition_date', 'desc')
             ->get()
             ->map(function ($equipment) {
+                $unitValue = (float) $equipment->unit_value;
                 return (object) [
                     'date_acquired' => $equipment->acquisition_date ? $equipment->acquisition_date->format('m/d/Y') : '---',
                     'particulars_articles' => $equipment->article . ' - ' . $equipment->description,
                     'property_no' => $equipment->property_number ?: '---',
                     'qty' => 1, // Usually 1 for equipment items
-                    'unit_cost' => $equipment->unit_value,
-                    'total_cost' => $equipment->unit_value,
-                    'accumulated_depreciation' => 0, // To be calculated based on business rules
-                    'accumulated_impairment_losses' => 0, // To be calculated based on business rules
-                    'carrying_amount' => $equipment->unit_value, // Total cost minus depreciation and impairment
+                    'unit_cost' => $unitValue,
+                    'total_cost' => $unitValue,
+                    'accumulated_depreciation' => 0.00, // To be calculated based on business rules
+                    'accumulated_impairment_losses' => 0.00, // To be calculated based on business rules
+                    'carrying_amount' => $unitValue, // Total cost minus depreciation and impairment
                     'remarks' => $equipment->remarks ?: '---',
                     // Disposal columns
                     'sale' => '',
@@ -54,7 +56,7 @@ class PpesController extends Controller
                     'appraised_value' => '',
                     // Record of Sales
                     'or_no' => '',
-                    'amount' => '',
+                    'amount' => 0.00,
                 ];
             });
 
@@ -66,8 +68,29 @@ class PpesController extends Controller
             ->sort()
             ->values();
 
+        // Build date range string
+        $dateRange = '';
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $dateRange = 'From ' . \Carbon\Carbon::parse($request->date_from)->format('F d, Y') . ' to ' . \Carbon\Carbon::parse($request->date_to)->format('F d, Y');
+        } elseif ($request->filled('date_from')) {
+            $dateRange = 'From ' . \Carbon\Carbon::parse($request->date_from)->format('F d, Y');
+        } elseif ($request->filled('date_to')) {
+            $dateRange = 'Up to ' . \Carbon\Carbon::parse($request->date_to)->format('F d, Y');
+        }
+
+        // Build applied filters string
+        $filters = [];
+        if (!empty($dateRange)) {
+            $filters[] = 'Date Range: ' . $dateRange;
+        }
+        if ($request->filled('classification')) {
+            $filters[] = 'Classification: ' . $request->classification;
+        }
+        $appliedFilters = implode(', ', $filters);
+
         $header = [
             'as_of' => $request->input('as_of') ? \Carbon\Carbon::parse($request->input('as_of'))->format('F d, Y') : '',
+            'date_range' => $dateRange,
             'entity_name' => $request->input('entity_name') ?: '',
             'fund_cluster' => $request->input('fund_cluster') ?: '',
             'accountable_person' => $request->input('accountable_person') ?: '',
@@ -76,11 +99,14 @@ class PpesController extends Controller
             'assumption_date' => $request->input('assumption_date') ?: '',
         ];
 
+        $reportType = str_contains($request->route()->getName(), 'iirup') ? 'iirup' : 'ppes';
+
         return view('client.report.ppes.index', [
             'ppesItems' => $ppesItems,
             'classifications' => $classifications,
             'filters' => $request->all(),
             'header' => $header,
+            'reportType' => $reportType,
         ]);
     }
 
@@ -92,10 +118,11 @@ class PpesController extends Controller
         $query->where('condition', 'unserviceable');
 
         // Apply other filters
-        if ($request->filled('date_from')) {
-            $query->whereDate('acquisition_date', '=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('acquisition_date', [$request->date_from, $request->date_to]);
+        } elseif ($request->filled('date_from')) {
+            $query->whereDate('acquisition_date', '>=', $request->date_from);
+        } elseif ($request->filled('date_to')) {
             $query->whereDate('acquisition_date', '<=', $request->date_to);
         }
         if ($request->filled('classification')) {
@@ -105,16 +132,17 @@ class PpesController extends Controller
         $ppesItems = $query->orderBy('acquisition_date', 'desc')
             ->get()
             ->map(function ($equipment) {
+                $unitValue = (float) $equipment->unit_value;
                 return (object) [
                     'date_acquired' => $equipment->acquisition_date ? $equipment->acquisition_date->format('m/d/Y') : '---',
                     'particulars_articles' => $equipment->article . ' - ' . $equipment->description,
                     'property_no' => $equipment->property_number ?: '---',
                     'qty' => 1,
-                    'unit_cost' => $equipment->unit_value,
-                    'total_cost' => $equipment->unit_value,
-                    'accumulated_depreciation' => 0,
-                    'accumulated_impairment_losses' => 0,
-                    'carrying_amount' => $equipment->unit_value,
+                    'unit_cost' => $unitValue,
+                    'total_cost' => $unitValue,
+                    'accumulated_depreciation' => 0.00,
+                    'accumulated_impairment_losses' => 0.00,
+                    'carrying_amount' => $unitValue,
                     'remarks' => $equipment->remarks ?: '---',
                     'sale' => '',
                     'transfer' => '',
@@ -123,9 +151,29 @@ class PpesController extends Controller
                     'total_disposal' => '',
                     'appraised_value' => '',
                     'or_no' => '',
-                    'amount' => '',
+                    'amount' => 0.00,
                 ];
             });
+
+        // Build date range string
+        $dateRange = '';
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $dateRange = 'From ' . \Carbon\Carbon::parse($request->date_from)->format('F d, Y') . ' to ' . \Carbon\Carbon::parse($request->date_to)->format('F d, Y');
+        } elseif ($request->filled('date_from')) {
+            $dateRange = 'From ' . \Carbon\Carbon::parse($request->date_from)->format('F d, Y');
+        } elseif ($request->filled('date_to')) {
+            $dateRange = 'Up to ' . \Carbon\Carbon::parse($request->date_to)->format('F d, Y');
+        }
+
+        // Build applied filters string
+        $filters = [];
+        if (!empty($dateRange)) {
+            $filters[] = 'Date Range: ' . $dateRange;
+        }
+        if ($request->filled('classification')) {
+            $filters[] = 'Classification: ' . $request->classification;
+        }
+        $appliedFilters = implode(', ', $filters);
 
         $header = [
             'as_of' => $request->input('as_of') ? \Carbon\Carbon::parse($request->input('as_of'))->format('F d, Y') : '',
@@ -137,7 +185,12 @@ class PpesController extends Controller
             'assumption_date' => $request->input('assumption_date') ?: '',
         ];
 
-        $pdf = Pdf::loadView('client.report.ppes.pdf', [
+        // Determine which PDF view to use based on the route
+        $reportType = str_contains($request->route()->getName(), 'iirup') ? 'iirup' : 'ppes';
+        $pdfView = 'client.report.' . $reportType . '.pdf';
+        $filename = ($reportType === 'iirup' ? 'IIRUP' : 'PPES') . '_Report_' . now()->format('Y-m-d') . '.pdf';
+
+        $pdf = Pdf::loadView($pdfView, [
             'ppesItems' => $ppesItems,
             'filters' => $request->all(),
             'header' => $header,
@@ -145,11 +198,11 @@ class PpesController extends Controller
 
         $pdf->setPaper('a4', 'landscape');
 
-        return $pdf->download('PPES_Report_' . now()->format('Y-m-d') . '.pdf');
+        return $pdf->download($filename);
     }
 
     public function exportExcel(Request $request)
     {
-        return Excel::download(new PpesExport($request), 'PPES_Report_' . now()->format('Y-m-d') . '.xlsx');
+        return Excel::download(new IirupExport($request), 'IIRUP_Report_' . now()->format('Y-m-d') . '.xlsx');
     }
 }

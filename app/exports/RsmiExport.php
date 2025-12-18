@@ -24,8 +24,12 @@ class RsmiExport implements FromArray, WithEvents
     {
         $query = Supplies::query();
 
-        if ($this->request->filled('date_from')) {
-            $query->whereDate('purchase_date', '=', $this->request->date_from);
+        if ($this->request->filled('date_from') && $this->request->filled('date_to')) {
+            $query->whereBetween('purchase_date', [$this->request->date_from, $this->request->date_to]);
+        } elseif ($this->request->filled('date_from')) {
+            $query->whereDate('purchase_date', '>=', $this->request->date_from);
+        } elseif ($this->request->filled('date_to')) {
+            $query->whereDate('purchase_date', '<=', $this->request->date_to);
         }
         if ($this->request->filled('description')) {
             $query->where('name', 'like', '%' . $this->request->description . '%');
@@ -52,7 +56,7 @@ class RsmiExport implements FromArray, WithEvents
             return [
                 'issue_no' => 'RSMI-' . now()->format('Y') . '-' . str_pad($supply->id, 4, '0', STR_PAD_LEFT),
                 'responsibility_center' => $supply->category ?? '---',
-                'stock_no' => $supply->stock_no ?? '---',
+                'stock_no' => $supply->id ?? '---',
                 'item' => $supply->name,
                 'unit' => $supply->unit,
                 'quantity_issued' => (string) $qtyVal, // return as string to ensure display
@@ -63,6 +67,26 @@ class RsmiExport implements FromArray, WithEvents
 
         // store data row count for event styling
         $this->dataRowCount = $rsmiItems->count();
+
+        // Build date range string
+        $dateRange = '';
+        if ($this->request->filled('date_from') && $this->request->filled('date_to')) {
+            $dateRange = 'From ' . \Carbon\Carbon::parse($this->request->date_from)->format('F d, Y') . ' to ' . \Carbon\Carbon::parse($this->request->date_to)->format('F d, Y');
+        } elseif ($this->request->filled('date_from')) {
+            $dateRange = 'From ' . \Carbon\Carbon::parse($this->request->date_from)->format('F d, Y');
+        } elseif ($this->request->filled('date_to')) {
+            $dateRange = 'Up to ' . \Carbon\Carbon::parse($this->request->date_to)->format('F d, Y');
+        }
+
+        // Build applied filters string
+        $filters = [];
+        if ($this->request->filled('description')) {
+            $filters[] = 'Description: ' . $this->request->description;
+        }
+        if ($this->request->filled('status')) {
+            $filters[] = 'Status: ' . $this->request->status;
+        }
+        $appliedFilters = implode(', ', $filters);
 
         // Header info (use input() so it works with POST as well)
         $entityName = $this->request->input('entity_name', '');
@@ -81,6 +105,9 @@ class RsmiExport implements FromArray, WithEvents
         $data[] = [$entityName ?: '____________________________'];
         $data[] = ['Report of Supplies and Materials Issued'];
         $data[] = ['For the Month of ' . $asOfMonth];
+        if (!empty($appliedFilters)) {
+            $data[] = [$appliedFilters];
+        }
         $data[] = ['Fund Cluster: ' . ($fundCluster ?: '________________________')];
         $data[] = ['']; // row 6 blank
 

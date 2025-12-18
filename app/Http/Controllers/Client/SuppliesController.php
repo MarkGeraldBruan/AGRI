@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Models\DeletedSupply;
 use App\Models\Supplies;
+use App\Exports\SuppliesExport;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class SuppliesController extends Controller
 {
@@ -36,7 +39,7 @@ class SuppliesController extends Controller
         }
 
         // Sort by
-        $sortBy = $request->get('sort_by', 'name');
+        $sortBy = $request->get('sort_by', 'id');
         $sortDirection = $request->get('sort_direction', 'asc');
         $query->orderBy($sortBy, $sortDirection);
 
@@ -158,121 +161,48 @@ class SuppliesController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Supplies $supply)
-    {
-        // Check delete permission
-        if (!auth()->user()->hasPermission('delete')) {
-            return response()->json(['error' => 'You do not have permission to delete supplies.'], 403);
-        }
-
-        $supply->delete();
-
-        return redirect()->route('supplies.index')->with('success', 'Supply item deleted successfully!');
+public function destroy(Supplies $supply)
+{
+    // Check delete permission
+    if (!auth()->user()->hasPermission('delete')) {
+        return response()->json(['error' => 'You do not have permission to delete supplies.'], 403);
     }
 
+    // Save to deleted_supplies table before deleting
+    DeletedSupply::create([
+        'user_id' => auth()->id(),
+        'supply_id' => $supply->id,
+        'name' => $supply->name,
+        'description' => $supply->description,
+        'quantity' => $supply->quantity,
+        'unit_price' => $supply->unit_price,
+        'unit' => $supply->unit,
+        'category' => $supply->category,
+        'supplier' => $supply->supplier,
+        'purchase_date' => $supply->purchase_date,
+        'minimum_stock' => $supply->minimum_stock,
+        'notes' => $supply->notes,
+        'total_value' => $supply->quantity * $supply->unit_price,
+        'reason' => request('reason'),
+        'ip_address' => request()->ip(),
+        'user_agent' => request()->userAgent()
+    ]);
+
+    $supply->delete();
+
+    return redirect()->route('supplies.index')->with('success', 'Supply item deleted successfully!');
+}
+
     /**
-     * Export supplies data
+     * Export supplies data to Excel
      */
     public function export(Request $request)
     {
-        // Check read permission for export
+        // Check read permission
         if (!auth()->user()->hasPermission('read')) {
             abort(403, 'You do not have permission to export supplies.');
         }
 
-        $query = Supplies::query();
-
-        // Apply the same filters as the index method
-        if ($request->has('search') && !empty($request->search)) {
-            $query->search($request->search);
-        }
-
-        if ($request->has('category') && !empty($request->category)) {
-            $query->where('category', $request->category);
-        }
-
-        if ($request->has('low_stock') && $request->low_stock == '1') {
-            $query->lowStock();
-        }
-
-        // Apply the same sorting as the index method
-        $sortBy = $request->get('sort_by', 'name');
-        $sortDirection = $request->get('sort_direction', 'asc');
-        $query->orderBy($sortBy, $sortDirection);
-
-        // Export only current page data (progressive export)
-        $perPage = 15;
-        $currentPage = $request->get('page', 1);
-        $offset = ($currentPage - 1) * $perPage;
-        $supplies = $query->skip($offset)->take($perPage)->get();
-
-        $data = [];
-
-        // Header row for supply details
-        $data[] = ['ID', 'Name', 'Description', 'Quantity', 'Unit Price', 'Unit', 'Category', 'Supplier', 'Purchase Date', 'Minimum Stock', 'Total Value', 'Notes'];
-
-        // Add supply data
-        foreach ($supplies as $supply) {
-            $data[] = [
-                $supply->id,
-                $supply->name,
-                $supply->description ?: 'N/A',
-                $supply->quantity,
-                $supply->unit_price,
-                $supply->unit,
-                $supply->category ?: 'Uncategorized',
-                $supply->supplier ?: 'N/A',
-                $supply->purchase_date ? $supply->purchase_date->format('F d, Y') : 'N/A',
-                $supply->minimum_stock,
-                $supply->quantity * $supply->unit_price,
-                $supply->notes ?: 'N/A'
-            ];
-        }
-
-        return \Maatwebsite\Excel\Facades\Excel::download(new class($data) implements \Maatwebsite\Excel\Concerns\FromArray, \Maatwebsite\Excel\Concerns\WithEvents {
-            protected $data;
-
-            public function __construct($data)
-            {
-                $this->data = $data;
-            }
-
-            public function array(): array
-            {
-                return $this->data;
-            }
-
-            public function registerEvents(): array
-            {
-                return [
-                    \Maatwebsite\Excel\Events\AfterSheet::class => function (\Maatwebsite\Excel\Events\AfterSheet $event) {
-                        $sheet = $event->sheet->getDelegate();
-
-                        // Header styling
-                        $sheet->getStyle('A1:L1')->getFont()->setBold(true);
-                        $sheet->getStyle('A1:L1')->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-                        $sheet->getStyle('A1:L1')->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-
-                        // Column widths
-                        $sheet->getColumnDimension('A')->setWidth(8);  // ID
-                        $sheet->getColumnDimension('B')->setWidth(25); // Name
-                        $sheet->getColumnDimension('C')->setWidth(30); // Description
-                        $sheet->getColumnDimension('D')->setWidth(10); // Quantity
-                        $sheet->getColumnDimension('E')->setWidth(12); // Unit Price
-                        $sheet->getColumnDimension('F')->setWidth(8);  // Unit
-                        $sheet->getColumnDimension('G')->setWidth(15); // Category
-                        $sheet->getColumnDimension('H')->setWidth(20); // Supplier
-                        $sheet->getColumnDimension('I')->setWidth(15); // Purchase Date
-                        $sheet->getColumnDimension('J')->setWidth(12); // Minimum Stock
-                        $sheet->getColumnDimension('K')->setWidth(12); // Total Value
-                        $sheet->getColumnDimension('L')->setWidth(30); // Notes
-
-                        // Borders for data
-                        $highestRow = $sheet->getHighestRow();
-                        $sheet->getStyle("A1:L{$highestRow}")->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
-                    }
-                ];
-            }
-        }, 'supplies_' . date('Y-m-d') . '.xlsx');
+        return \Maatwebsite\Excel\Facades\Excel::download(new SuppliesExport($request), 'supplies_export_' . now()->format('Y-m-d') . '.xlsx');
     }
 }

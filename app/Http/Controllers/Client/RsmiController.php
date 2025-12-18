@@ -18,8 +18,12 @@ class RsmiController extends Controller
         $query = Supplies::query();
 
         // Apply filters
-        if ($request->filled('date_from')) {
-            $query->whereDate('purchase_date', '=', $request->date_from);
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('purchase_date', [$request->date_from, $request->date_to]);
+        } elseif ($request->filled('date_from')) {
+            $query->whereDate('purchase_date', '>=', $request->date_from);
+        } elseif ($request->filled('date_to')) {
+            $query->whereDate('purchase_date', '<=', $request->date_to);
         }
         if ($request->filled('description')) {
             $query->where('name', 'like', '%' . $request->description . '%');
@@ -39,8 +43,9 @@ class RsmiController extends Controller
             return (object) [
                 'issue_no' => 'RSMI-' . now()->format('Y') . '-' . str_pad($supply->id, 4, '0', STR_PAD_LEFT),
                 'responsibility_center' => $supply->category ?? '---',
-                'stock_no' => '---',
+                'stock_no' => $supply->id,
                 'item' => $supply->name,
+                'description' => $supply->description,
                 'unit' => $supply->unit,
                 'quantity_issued' => $supply->quantity,
                 'unit_cost' => $supply->unit_price,
@@ -56,7 +61,7 @@ class RsmiController extends Controller
         })->values();
 
         $recapRight = [
-            'unit_cost' => $rsmiItems->sum('unit_cost'),
+            'total_quantity' => $rsmiItems->sum('quantity_issued'),
             'total_cost' => $rsmiItems->sum('amount'),
             'uacs_code' => '---', // Placeholder, can be updated if UACS code is available
         ];
@@ -64,8 +69,33 @@ class RsmiController extends Controller
         // Get unique names for dropdown (choices of items like ballpen, etc.)
         $descriptions = Supplies::whereNotNull('name')->where('name', '!=', '')->distinct()->pluck('name')->sort()->values();
 
+        // Build date range string
+        $dateRange = '';
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $dateRange = 'From ' . Carbon::parse($request->date_from)->format('F d, Y') . ' to ' . Carbon::parse($request->date_to)->format('F d, Y');
+        } elseif ($request->filled('date_from')) {
+            $dateRange = 'From ' . Carbon::parse($request->date_from)->format('F d, Y');
+        } elseif ($request->filled('date_to')) {
+            $dateRange = 'Up to ' . Carbon::parse($request->date_to)->format('F d, Y');
+        }
+
+        // Build applied filters string
+        $filters = [];
+        if (!empty($dateRange)) {
+            $filters[] = 'Date Range: ' . $dateRange;
+        }
+        if ($request->filled('description')) {
+            $filters[] = 'Description: ' . $request->description;
+        }
+        if ($request->filled('status')) {
+            $filters[] = 'Status: ' . $request->status;
+        }
+        $appliedFilters = implode(', ', $filters);
+
         $header = [
             'as_of' => $request->query('as_of') ? Carbon::parse($request->query('as_of'))->format('F Y') : '',
+            'date_range' => $dateRange,
+            'applied_filters' => $appliedFilters,
             'entity_name' => $request->query('entity_name', ''),
             'fund_cluster' => $request->query('fund_cluster', ''),
             'accountable_person' => $request->query('accountable_person', ''),
@@ -76,6 +106,7 @@ class RsmiController extends Controller
             'date' => $request->query('date', now()->format('F d, Y')),
             'accountability_text' => 'For which ' . ($request->query('accountable_person', '________________')) . ', ' . ($request->query('position', '________________')) . ', ' . ($request->query('office', '________________')) . ' is accountable, having assumed such accountability on ' . ($request->query('assumption_date', '________________')) . '.',
         ];
+
         return view('client.report.rsmi.index', [
             'rsmiItems' => $rsmiItems,
             'recapLeft' => $recapLeft,
@@ -90,8 +121,12 @@ class RsmiController extends Controller
         $query = Supplies::query();
 
         // Apply same filters as index
-        if ($request->filled('date_from')) {
-            $query->whereDate('purchase_date', '=', $request->date_from);
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('purchase_date', [$request->date_from, $request->date_to]);
+        } elseif ($request->filled('date_from')) {
+            $query->whereDate('purchase_date', '>=', $request->date_from);
+        } elseif ($request->filled('date_to')) {
+            $query->whereDate('purchase_date', '<=', $request->date_to);
         }
         if ($request->filled('description')) {
             $query->where('name', 'like', '%' . $request->description . '%');
@@ -110,7 +145,7 @@ class RsmiController extends Controller
             return (object) [
                 'issue_no' => 'RSMI-' . now()->format('Y') . '-' . str_pad($supply->id, 4, '0', STR_PAD_LEFT),
                 'responsibility_center' => $supply->category ?? '---',
-                'stock_no' => '---',
+                'stock_no' => $supply->id,
                 'item' => $supply->name,
                 'unit' => $supply->unit,
                 'quantity_issued' => $supply->quantity,
@@ -144,6 +179,7 @@ class RsmiController extends Controller
             'date' => $request->query('date', now()->format('F d, Y')),
             'accountability_text' => 'For which ' . ($request->query('accountable_person', '________________')) . ', ' . ($request->query('position', '________________')) . ', ' . ($request->query('office', '________________')) . ' is accountable, having assumed such accountability on ' . ($request->query('assumption_date', '________________')) . '.',
         ];
+
         $data = [
             'rsmiItems' => $rsmiItems,
             'recapLeft' => $recapLeft,

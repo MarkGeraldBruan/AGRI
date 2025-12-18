@@ -1,7 +1,7 @@
 <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 
 <div class="welcome-section">
-    <h2><strong></strong></h2>
+    <h2><strong>@if(auth()->user()->isAdmin()) Welcome to Admin Dashboard @else Welcome to the Dashboard @endif</strong></h2>
 </div>
 
 
@@ -63,7 +63,7 @@
         <span class="events-count">{{ count($publishedAnnouncements ?? []) }} events</span>
     </div>
     
-    <div class="events-container">
+    <div class="events-container @if(count($publishedAnnouncements ?? []) >= 3) scrollable @endif">
         @forelse($publishedAnnouncements ?? [] as $announcement)
             <div class="event-timeline-item">
                 <!-- Timeline dot -->
@@ -145,8 +145,8 @@
                     Date
                 </div>
             </div>
-            
-            <div class="table-body">
+
+            <div class="table-body @if(count($recentItems ?? []) >= 5) scrollable @endif">
                 @forelse($recentItems ?? [] as $item)
                     <div class="table-row">
                         <div class="cell items-cell">{{ $item->name ?? 'Sample Item' }}</div>
@@ -183,7 +183,7 @@
                 </div>
             </div>
             
-            <div class="low-stock-body">
+            <div class="low-stock-body @if(count($lowStockItems ?? []) > 5) scrollable @endif">
                 @forelse($lowStockItems ?? [] as $item)
                     <div class="low-stock-row">
                         <div class="low-cell id-cell">{{ $loop->iteration }}</div>
@@ -280,6 +280,11 @@
 .events-container {
     padding: 25px;
     position: relative;
+}
+
+.events-container.scrollable {
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 /* Timeline Layout */
@@ -588,6 +593,11 @@
         transform: translateY(0);
         opacity: 1;
     }
+}
+
+.scrollable {
+    max-height: 250px;
+    overflow-y: auto;
 }
 
 @media (max-width: 768px) {

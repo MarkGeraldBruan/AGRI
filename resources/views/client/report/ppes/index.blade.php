@@ -450,10 +450,15 @@
 
                 {{-- Data filters --}}
                 <div class="filters-section">
-                    <form method="GET" action="{{ route('client.report.ppes') }}" class="filters-form">
+                    <form method="GET" action="{{ route('client.report.' . ($reportType ?? 'ppes')) }}" class="filters-form">
                         <div class="filter-group">
                             <label>Date From</label>
                             <input type="date" name="date_from" value="{{ request('date_from') }}">
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Date To</label>
+                            <input type="date" name="date_to" value="{{ request('date_to') }}">
                         </div>
 
                         <div class="filter-group">
@@ -472,7 +477,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-filter"></i> Apply Filters
                             </button>
-                            <a href="{{ route('client.report.ppes') }}" class="btn btn-secondary">
+                            <a href="{{ route('client.report.' . ($reportType ?? 'ppes')) }}" class="btn btn-secondary">
                                 <i class="fas fa-redo"></i> Reset
                             </a>
                         </div>
@@ -484,6 +489,7 @@
                     <form method="get" class="filters-form">
                     {{-- preserve current filters as hidden inputs --}}
                     <input type="hidden" name="date_from" value="{{ request('date_from') }}">
+                    <input type="hidden" name="date_to" value="{{ request('date_to') }}">
                     <input type="hidden" name="classification" value="{{ request('classification') }}">
 
                         <div class="filter-group">

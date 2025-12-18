@@ -244,7 +244,7 @@
             /* Set proper page margins for complete visibility */
             @page {
                 margin: 0.5cm;
-                size: A4;
+                size: A4 landscape;
             }
 
             /* Reset body and page styles */
@@ -362,7 +362,7 @@
             /* Style the table for print */
             .report-table-container {
                 padding: 0 !important;
-                margin: 0 auto !important;
+                margin: 40px auto 0 auto !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
                 width: 100% !important;
@@ -372,7 +372,7 @@
             .report-table {
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 9px;
+                font-size: 6px;
                 page-break-inside: auto;
                 table-layout: fixed;
             }
@@ -389,8 +389,8 @@
             .report-table th,
             .report-table td {
                 border: 1px solid #000 !important;
-                padding: 3px 2px !important;
-                font-size: 8px !important;
+                padding: 1px 0.5px !important;
+                font-size: 6px !important;
                 text-align: center;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
@@ -401,7 +401,7 @@
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 font-weight: 600;
-                font-size: 8px !important;
+                font-size: 6px !important;
             }
 
             /* Style recap tables for print */
@@ -421,7 +421,7 @@
             }
 
             .recap p {
-                font-size: 10px;
+                font-size: 8px;
                 font-weight: 600;
                 margin-bottom: 3px;
             }
@@ -429,14 +429,14 @@
             .recap table {
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 9px;
+                font-size: 6px;
             }
 
             .recap th,
             .recap td {
                 border: 1px solid #000 !important;
-                padding: 3px 2px !important;
-                font-size: 7px !important;
+                padding: 1px 0.5px !important;
+                font-size: 5px !important;
                 text-align: center;
                 word-wrap: break-word;
             }
@@ -530,10 +530,15 @@
             {{-- Data filters --}}
             <div class="filters-section">
                 <form method="GET" action="{{ route('client.report.rsmi') }}" class="filters-form">
-                    <div class="filter-group">
+                        <div class="filter-group">
                         <label for="date_from">Date From</label>
                         <input type="date" id="date_from" name="date_from" value="{{ request('date_from') }}">
-                    </div>
+                        </div>
+
+                        <div class="filter-group">
+                        <label for="date_to">Date To</label>
+                        <input type="date" id="date_to" name="date_to" value="{{ request('date_to') }}">
+                        </div>
                     <div class="filter-group">
                         <label for="description">Description</label>
                         <select id="description" name="description">
@@ -569,6 +574,7 @@
                 <form method="get" class="filters-form">
                     {{-- preserve current filters as hidden inputs --}}
                     <input type="hidden" name="date_from" value="{{ request('date_from') }}">
+                    <input type="hidden" name="date_to" value="{{ request('date_to') }}">
                     <input type="hidden" name="description" value="{{ request('description') }}">
                     <input type="hidden" name="status" value="{{ request('status') }}">
 
@@ -616,6 +622,7 @@
                                 <th>Responsibility Center Code</th>
                                 <th>Stock No.</th>
                                 <th>Item</th>
+                                <th>Description</th>
                                 <th>Unit</th>
                                 <th>Quantity Issued</th>
                                 <th>Unit Cost</th>
@@ -629,6 +636,7 @@
                                     <td>{{ $item->responsibility_center }}</td>
                                     <td>{{ $item->stock_no }}</td>
                                     <td>{{ $item->item }}</td>
+                                    <td>{{ $item->description }}</td>
                                     <td>{{ $item->unit }}</td>
                                     <td>{{ $item->quantity_issued }}</td>
                                     <td>₱ {{ number_format($item->unit_cost, 2) }}</td>
@@ -664,14 +672,14 @@
                         <table>
                             <thead>
                                 <tr>
-                                    <th>Unit Cost</th>
+                                    <th>Total Quantity</th>
                                     <th>Total Cost</th>
                                     <th>UACS Object Code</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>₱ {{ number_format($recapRight['unit_cost'], 2) }}</td>
+                                    <td>{{ $recapRight['total_quantity'] }}</td>
                                     <td>₱ {{ number_format($recapRight['total_cost'], 2) }}</td>
                                     <td>{{ $recapRight['uacs_code'] }}</td>
                                 </tr>

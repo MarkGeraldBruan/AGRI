@@ -380,8 +380,8 @@ z/* SUPPLIES MANAGEMENT CSS */
 }
 
 .btn-sm {
-    padding: 6px 12px;
-    font-size: 12px;
+    padding: 12px 24px;
+    font-size: 14px;
     font-weight: 500;
 }
 
@@ -454,35 +454,98 @@ z/* SUPPLIES MANAGEMENT CSS */
 
 /* Pagination */
 
+.pagination-info {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: 600;
+    color: #296218;
+    font-size: 16px;
+    background: rgba(255,255,255,0.9);
+    padding: 10px 20px;
+    border-radius: 8px;
+    display: inline-block;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.pagination-links {
+    display: flex;
+    justify-content: center;
+    padding: 20px 0;
+}
+
 .pagination {
     display: flex;
     justify-content: center;
-    padding: 20px;
-    gap: 8px;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
-.pagination a, 
-.pagination span {
-    padding: 10px 14px;
+.pagination .page-link {
+    padding: 14px 20px;
     text-decoration: none;
     border-radius: 8px;
     color: #495057;
     background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    font-weight: 500;
+    border: 2px solid #dee2e6;
+    font-weight: 600;
+    font-size: 16px;
     transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-width: 50px;
+    justify-content: center;
 }
 
-.pagination a:hover {
+.pagination .page-link:hover {
     background: #5a8a4e;
     color: white;
     border-color: #5a8a4e;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
-.pagination .active span {
-    background: #5a8a4e;
+.pagination .page-item.active .page-link {
+    background: #296218;
     color: white;
-    border-color: #5a8a4e;
+    border-color: #296218;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(41, 98, 24, 0.3);
+}
+
+.pagination .page-link[rel="prev"],
+.pagination .page-link[rel="next"] {
+    font-weight: 700;
+    background: #296218;
+    color: white;
+    border-color: #296218;
+    font-size: 16px;
+    padding: 16px 20px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pagination .page-link[rel="prev"]:hover,
+.pagination .page-link[rel="next"]:hover {
+    background: #1e4d16;
+    color: white;
+    border-color: #1e4d16;
+}
+
+.pagination .page-link.disabled {
+    background: #e9ecef;
+    color: #6c757d;
+    border-color: #e9ecef;
+    cursor: not-allowed;
+}
+
+.pagination .page-link.disabled:hover {
+    background: #e9ecef;
+    color: #6c757d;
+    transform: none;
+    box-shadow: none;
 }
 
 /* Empty State */

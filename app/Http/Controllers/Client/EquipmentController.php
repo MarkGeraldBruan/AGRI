@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use App\Models\Equipment;
+use App\Models\DeletedEquipment;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -73,10 +74,15 @@ class EquipmentController extends Controller
             'unit_of_measurement' => 'required|string|max:50',
             'unit_value' => 'required|numeric|min:0',
             'condition' => 'required|in:Serviceable,Unserviceable',
+            'disposal_method' => 'required_if:condition,Unserviceable|nullable|in:Sale,Transfer,Destruction,Others',
+            'disposal_details' => 'required_if:disposal_method,Others|nullable|string|max:255',
             'acquisition_date' => 'nullable|date',
             'location' => 'nullable|string|max:255',
             'responsible_person' => 'nullable|string|max:255',
             'remarks' => 'nullable|string'
+        ], [
+            'disposal_method.required_if' => 'The disposal method field is required when condition is unserviceable.',
+            'disposal_details.required_if' => 'Please specify the disposal details when selecting "Others".',
         ]);
 
         Equipment::create($validated);
@@ -97,8 +103,7 @@ class EquipmentController extends Controller
         }
 
         $equipment = Equipment::findOrFail($id);
-        return view('client.equipment.view
-        ', compact('equipment'));
+        return view('client.equipment.view', compact('equipment'));
     }
 
     /**
@@ -138,10 +143,15 @@ class EquipmentController extends Controller
             'unit_of_measurement' => 'required|string|max:50',
             'unit_value' => 'required|numeric|min:0',
             'condition' => 'required|in:Serviceable,Unserviceable',
+            'disposal_method' => 'required_if:condition,Unserviceable|nullable|in:Sale,Transfer,Destruction,Others',
+            'disposal_details' => 'required_if:disposal_method,Others|nullable|string|max:255',
             'acquisition_date' => 'nullable|date',
             'location' => 'nullable|string|max:255',
             'responsible_person' => 'nullable|string|max:255',
             'remarks' => 'nullable|string'
+        ], [
+            'disposal_method.required_if' => 'The disposal method field is required when condition is unserviceable.',
+            'disposal_details.required_if' => 'Please specify the disposal details when selecting "Others".',
         ]);
 
         $equipment->update($validated);
@@ -155,33 +165,42 @@ class EquipmentController extends Controller
      */
     public function destroy($id)
     {
-        // Check permission
         if (!auth()->user()->hasPermission('delete')) {
             return redirect()->route('client.equipment.index')
                 ->with('error', 'You do not have permission to delete equipment.');
         }
 
         $equipment = Equipment::findOrFail($id);
-        $equipment->delete();
+
+        // Save to deleted_equipment table
+        DeletedEquipment::create([
+            'user_id' => auth()->id(),
+            'equipment_id' => $equipment->id,
+            'property_number' => $equipment->property_number,
+            'article' => $equipment->article,
+            'classification' => $equipment->classification,
+            'description' => $equipment->description,
+            'unit_of_measurement' => $equipment->unit_of_measurement,
+            'unit_value' => $equipment->unit_value,
+            'condition' => $equipment->condition,
+            'disposal_method' => $equipment->disposal_method,
+            'disposal_details' => $equipment->disposal_details,
+            'acquisition_date' => $equipment->acquisition_date,
+            'location' => $equipment->location,
+            'responsible_person' => $equipment->responsible_person,
+            'remarks' => $equipment->remarks,
+            'reason' => request('reason'),
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent()
+        ]);
+
+        // Use forceDelete() instead of delete() to permanently remove
+        $equipment->forceDelete();
 
         return redirect()->route('client.equipment.index')
             ->with('success', 'Equipment deleted successfully!');
     }
-
-    /**
-     * Get unique classifications for autocomplete
-     */
-    public function getClassifications()
-    {
-        $classifications = Equipment::whereNotNull('classification')
-            ->distinct()
-            ->pluck('classification')
-            ->filter()
-            ->values();
-
-        return response()->json($classifications);
-    }
-
+    
     /**
      * Export equipment to Excel
      */
@@ -219,7 +238,21 @@ class EquipmentController extends Controller
         $data = [];
 
         // Header row for equipment details
-        $data[] = ['Property Number', 'Article', 'Classification', 'Description', 'Unit of Measurement', 'Unit Value', 'Condition', 'Acquisition Date', 'Location', 'Responsible Person', 'Remarks'];
+        $data[] = [
+            'Property Number', 
+            'Article', 
+            'Classification', 
+            'Description', 
+            'Unit of Measurement', 
+            'Unit Value', 
+            'Condition', 
+            'Disposal Method',
+            'Disposal Details',
+            'Acquisition Date', 
+            'Location', 
+            'Responsible Person', 
+            'Remarks'
+        ];
 
         // Add equipment data
         foreach ($equipment as $item) {
@@ -231,6 +264,8 @@ class EquipmentController extends Controller
                 $item->unit_of_measurement,
                 $item->unit_value,
                 $item->condition,
+                $item->disposal_method ?: 'N/A',
+                $item->disposal_details ?: 'N/A',
                 $item->acquisition_date ? $item->acquisition_date->format('F d, Y') : 'N/A',
                 $item->location ?: 'N/A',
                 $item->responsible_person ?: 'N/A',
@@ -263,10 +298,12 @@ class EquipmentController extends Controller
                         $sheet->getColumnDimension('E')->setWidth(15); // Unit of Measurement
                         $sheet->getColumnDimension('F')->setWidth(12); // Unit Value
                         $sheet->getColumnDimension('G')->setWidth(12); // Condition
-                        $sheet->getColumnDimension('H')->setWidth(15); // Acquisition Date
-                        $sheet->getColumnDimension('I')->setWidth(20); // Location
-                        $sheet->getColumnDimension('J')->setWidth(20); // Responsible Person
-                        $sheet->getColumnDimension('K')->setWidth(30); // Remarks
+                        $sheet->getColumnDimension('H')->setWidth(15); // Disposal Method
+                        $sheet->getColumnDimension('I')->setWidth(20); // Disposal Details
+                        $sheet->getColumnDimension('J')->setWidth(15); // Acquisition Date
+                        $sheet->getColumnDimension('K')->setWidth(20); // Location
+                        $sheet->getColumnDimension('L')->setWidth(20); // Responsible Person
+                        $sheet->getColumnDimension('M')->setWidth(30); // Remarks
                     }
                 ];
             }

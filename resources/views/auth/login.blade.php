@@ -16,21 +16,62 @@
 
 <style>
     body {
-    font-family: 'Poppins', sans-serif;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 50%, #FFC107 100%);
-    background: url('{{ asset('assets/img/BgForLoginAndRegister.png') }}') no-repeat center center fixed;
-    background-size: cover;
-    background-position: center;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    overflow-x: hidden;
-    overflow-y: auto;
-    padding: 20px 0 120px 0;
-}
+        font-family: 'Poppins', sans-serif;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 50%, #FFC107 100%);
+        background: url('{{ asset('assets/img/BgForLoginAndRegister.png') }}') no-repeat center center fixed;
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 20px 0 120px 0;
+    }
+
+    /* Form row with forgot password link */
+    .form-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .forgot-password-link {
+        color: #4CAF50;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .forgot-password-link:hover {
+        color: #296218;
+        text-decoration: underline;
+    }
+
+    /* Additional styles for checkbox wrapper */
+    .checkbox-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .checkbox-wrapper input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .checkbox-wrapper label {
+        font-size: 13px;
+        color: #333;
+        cursor: pointer;
+        user-select: none;
+    }
 </style>
 
 </head>
@@ -41,7 +82,6 @@
         <div class="logo">
             @if(file_exists(public_path('assets/img/BgForLoginAndRegister.png'))) 
                 <img src="{{ asset('assets/img/sample.png') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">
-                <a style="color: white"> </a>
                 <img src="{{ asset('assets/img/atirtc1logo.jpg') }}" alt="{{ config('app.name', 'AGRISUPPLY') }}">
             @else
                 <div class="logo-fallback">
@@ -112,6 +152,10 @@
                            {{ old('remember') ? 'checked' : '' }}>
                     <label for="remember">{{ __('Remember me') }}</label>
                 </div>
+                
+                <a href="{{ route('password.request') }}" class="forgot-password-link">
+                    {{ __('Forgot Password?') }}
+                </a>
             </div>
 
             <button type="submit" class="login-btn">

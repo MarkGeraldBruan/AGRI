@@ -31,7 +31,7 @@
                         <div class="search-filter-group">
                             <div class="search-box">
                                 <i class="fas fa-search"></i>
-                                <input type="text" placeholder="Search" 
+                                <input type="text" placeholder="Search by article, description, or ID"
                                        value="{{ request('search') }}" id="searchInput">
                             </div>
                             
@@ -56,7 +56,7 @@
                             @endif
                             
                             @if(auth()->user()->hasPermission('read'))
-                                <a href="{{ route('equipment.export') }}" class="btn btn-primary">
+                                <a href="{{ route('equipment.export', request()->query()) }}" class="btn btn-primary">
                                     <i class="fas fa-download"></i>
                                     Export
                                 </a>
@@ -189,25 +189,25 @@
                                                             <i class="fas fa-eye"></i>
                                                         </a>
                                                     @endif
-                                                    
+
                                                     @if(auth()->user()->hasPermission('update'))
                                                         <a href="{{ route('equipment.edit', $item) }}" class="btn btn-warning btn-sm" title="Edit">
                                                             <i class="fas fa-edit"></i>
                                                         </a>
                                                     @endif
-                                                    
+
                                                     @if(auth()->user()->hasPermission('delete'))
                                                         <form method="POST" action="{{ route('equipment.destroy', $item) }}" style="display: inline;">
                                                             @csrf
                                                             @method('DELETE')
-                                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete" 
+                                                            <button type="submit" class="btn btn-danger btn-sm" title="Delete"
                                                                     onclick="return confirm('Are you sure you want to delete this equipment?')">
                                                                 <i class="fas fa-trash"></i>
                                                             </button>
                                                         </form>
                                                     @else
-                                                        <button class="btn btn-sm" 
-                                                                style="background: #6c757d; color: white; cursor: not-allowed;" 
+                                                        <button class="btn btn-sm"
+                                                                style="background: #6c757d; color: white; cursor: not-allowed;"
                                                                 title="No delete permission" disabled>
                                                             <i class="fas fa-lock"></i>
                                                         </button>
@@ -220,11 +220,9 @@
                             </table>
                             
                             <!-- Pagination -->
-                            @if($equipment->hasPages())
-                                <div class="pagination">
-                                    {{ $equipment->appends(request()->query())->links() }}
-                                </div>
-                            @endif
+                        @if($equipment->hasPages())
+                            {{ $equipment->appends(request()->query())->links('vendor.pagination.simple') }}
+                        @endif
                         @else
                             <div class="empty-state">
                                 <i class="fas fa-tools"></i>
@@ -256,7 +254,7 @@
             $('#searchInput').on('input', function() {
                 clearTimeout(searchTimeout);
                 const searchTerm = $(this).val();
-                
+
                 searchTimeout = setTimeout(() => {
                     const url = new URL(window.location.href);
                     if (searchTerm) {
@@ -264,6 +262,7 @@
                     } else {
                         url.searchParams.delete('search');
                     }
+                    url.searchParams.delete('page'); // Reset to first page
                     window.location.href = url.toString();
                 }, 500);
             });
@@ -276,6 +275,7 @@
                 } else {
                     url.searchParams.delete('condition');
                 }
+                url.searchParams.delete('page'); // Reset to first page
                 window.location.href = url.toString();
             });
         });

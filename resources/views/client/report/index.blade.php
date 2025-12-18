@@ -154,10 +154,10 @@
                         <div class="report-subtitle">Report of Supplies and Materials Issued</div>
                     </a>
 
-                    <a href="{{ route('client.report.ppes') }}" class="report-button">
+                    <a href="{{ route('client.report.iirup') }}" class="report-button">
                         <i class="fas fa-tools report-icon"></i>
-                        <div class="report-title">PPES</div>
-                        <div class="report-subtitle">Property Plant and Equipment</div>
+                        <div class="report-title">IIRUP</div>
+                        <div class="report-subtitle">INVENTORY AND INSPECTION REPORT OF UNSERVICEABLE PROPERTY</div>
                     </a>
 
                     <a href="{{ route('client.report.rpc-ppe') }}" class="report-button">

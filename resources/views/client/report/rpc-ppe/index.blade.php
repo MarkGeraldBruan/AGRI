@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -262,7 +262,7 @@
             /* Set proper page margins for complete visibility */
             @page {
                 margin: 0.5cm;
-                size: A4;
+                size: A4 landscape;
             }
 
             body {
@@ -356,27 +356,27 @@
             .equipment-table {
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 8px;
-                margin: 0 auto 15px auto;
+                font-size: 6px;
+                margin: 40px auto 15px auto;
                 border: 1px solid #000;
                 table-layout: fixed;
             }
 
             .equipment-table th {
-                padding: 3px 2px;
+                padding: 1px 0.5px;
                 text-align: center;
                 font-weight: bold;
                 border: 1px solid #000;
                 background: #f0f0f0;
-                font-size: 7px;
+                font-size: 6px;
                 text-transform: uppercase;
                 word-wrap: break-word;
             }
 
             .equipment-table td {
-                padding: 3px 2px;
+                padding: 1px 0.5px;
                 border: 1px solid #000;
-                font-size: 7px;
+                font-size: 6px;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
             }
@@ -389,8 +389,8 @@
 
             .classification-header-row td {
                 font-weight: bold;
-                font-size: 8px;
-                padding: 4px 2px;
+                font-size: 7px;
+                padding: 2px 1px;
                 text-align: center;
             }
 
@@ -437,6 +437,9 @@
                 <div class="report-header">
                     <h1>REPORT ON THE PHYSICAL COUNT OF PROPERTY, PLANT AND EQUIPMENT</h1>
                     <p style="font-size: 12px; margin-top: 5px;">As of {!! isset($header['as_of']) && trim($header['as_of']) !== '' ? e($header['as_of']) : '<span style="border-bottom:1px solid #000;padding:0 50px;display:inline-block;">&nbsp;</span>' !!}</p>
+                    @if(isset($header['applied_filters']) && !empty($header['applied_filters']))
+                        <p style="font-size: 12px; margin-top: 5px; color: #666;">Applied Filters: {{ $header['applied_filters'] }}</p>
+                    @endif
                 </div>
 
                 {{-- Header display section --}}
@@ -497,6 +500,11 @@
                         </div>
 
                         <div class="filter-group">
+                            <label>Date To</label>
+                            <input type="date" name="date_to" value="{{ request('date_to') }}">
+                        </div>
+
+                        <div class="filter-group">
                             <label>Article</label>
                             <select name="classification">
                                 <option value="">All Articles</option>
@@ -530,11 +538,12 @@
 
                 {{-- Header input form --}}
                 <div class="filters-section" style="margin-top: 10px; background: #f8f9fa; border: 1px solid #ddd;">
-                    <form method="get" class="filters-form">
-                        {{-- preserve current filters as hidden inputs --}}
-                        <input type="hidden" name="classification" value="{{ request('classification') }}">
-                        <input type="hidden" name="condition" value="{{ request('condition') }}">
-                        <input type="hidden" name="date_from" value="{{ request('date_from') }}">
+                <form method="get" class="filters-form">
+                    {{-- preserve current filters as hidden inputs --}}
+                    <input type="hidden" name="classification" value="{{ request('classification') }}">
+                    <input type="hidden" name="condition" value="{{ request('condition') }}">
+                    <input type="hidden" name="date_from" value="{{ request('date_from') }}">
+                    <input type="hidden" name="date_to" value="{{ request('date_to') }}">
 
                         <div class="filter-group">
                             <label>As of</label>

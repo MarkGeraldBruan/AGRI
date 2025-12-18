@@ -65,7 +65,8 @@ class Supplies extends Model
             $q->where('name', 'like', "%{$term}%")
               ->orWhere('category', 'like', "%{$term}%")
               ->orWhere('supplier', 'like', "%{$term}%")
-              ->orWhere('description', 'like', "%{$term}%");
+              ->orWhere('description', 'like', "%{$term}%")
+              ->orWhere('id', '=', $term);
         });
     }
 }

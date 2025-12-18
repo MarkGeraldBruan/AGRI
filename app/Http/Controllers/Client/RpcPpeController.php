@@ -19,8 +19,12 @@ class RpcPpeController extends Controller
             ->orderBy('property_number');
 
         // Apply filters if provided
-        if ($request->filled('date_from')) {
-            $equipmentQuery->whereDate('acquisition_date', '=', $request->date_from);
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $equipmentQuery->whereBetween('acquisition_date', [$request->date_from, $request->date_to]);
+        } elseif ($request->filled('date_from')) {
+            $equipmentQuery->whereDate('acquisition_date', '>=', $request->date_from);
+        } elseif ($request->filled('date_to')) {
+            $equipmentQuery->whereDate('acquisition_date', '<=', $request->date_to);
         }
 
         if ($request->filled('classification')) {
@@ -36,6 +40,26 @@ class RpcPpeController extends Controller
         }
 
         $allEquipment = $equipmentQuery->get();
+
+        // Build applied filters string
+        $filters = [];
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $filters[] = 'Date Range: From ' . \Carbon\Carbon::parse($request->date_from)->format('F d, Y') . ' to ' . \Carbon\Carbon::parse($request->date_to)->format('F d, Y');
+        } elseif ($request->filled('date_from')) {
+            $filters[] = 'Date Range: From ' . \Carbon\Carbon::parse($request->date_from)->format('F d, Y');
+        } elseif ($request->filled('date_to')) {
+            $filters[] = 'Date Range: Up to ' . \Carbon\Carbon::parse($request->date_to)->format('F d, Y');
+        }
+        if ($request->filled('classification')) {
+            $filters[] = 'Classification: ' . $request->classification;
+        }
+        if ($request->filled('condition')) {
+            $filters[] = 'Condition: ' . $request->condition;
+        }
+        if ($request->filled('description')) {
+            $filters[] = 'Description: ' . $request->description;
+        }
+        $appliedFilters = implode(', ', $filters);
 
         // Group equipment by classification
         $groupedEquipment = $allEquipment->groupBy('classification');
@@ -86,8 +110,12 @@ class RpcPpeController extends Controller
             ->orderBy('property_number');
 
         // Apply filters if provided
-        if ($request->filled('date_from')) {
-            $equipmentQuery->whereDate('acquisition_date', '=', $request->date_from);
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $equipmentQuery->whereBetween('acquisition_date', [$request->date_from, $request->date_to]);
+        } elseif ($request->filled('date_from')) {
+            $equipmentQuery->whereDate('acquisition_date', '>=', $request->date_from);
+        } elseif ($request->filled('date_to')) {
+            $equipmentQuery->whereDate('acquisition_date', '<=', $request->date_to);
         }
 
         if ($request->filled('classification')) {
@@ -102,6 +130,26 @@ class RpcPpeController extends Controller
 
         // Group equipment by classification
         $groupedEquipment = $allEquipment->groupBy('classification');
+
+        // Build applied filters string
+        $filters = [];
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $filters[] = 'Date Range: From ' . \Carbon\Carbon::parse($request->date_from)->format('F d, Y') . ' to ' . \Carbon\Carbon::parse($request->date_to)->format('F d, Y');
+        } elseif ($request->filled('date_from')) {
+            $filters[] = 'Date Range: From ' . \Carbon\Carbon::parse($request->date_from)->format('F d, Y');
+        } elseif ($request->filled('date_to')) {
+            $filters[] = 'Date Range: Up to ' . \Carbon\Carbon::parse($request->date_to)->format('F d, Y');
+        }
+        if ($request->filled('classification')) {
+            $filters[] = 'Classification: ' . $request->classification;
+        }
+        if ($request->filled('condition')) {
+            $filters[] = 'Condition: ' . $request->condition;
+        }
+        if ($request->filled('description')) {
+            $filters[] = 'Description: ' . $request->description;
+        }
+        $appliedFilters = implode(', ', $filters);
 
         $header = [
             'as_of' => $request->query('as_of') ? \Carbon\Carbon::parse($request->query('as_of'))->format('F d, Y') : '',

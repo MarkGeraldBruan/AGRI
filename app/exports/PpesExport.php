@@ -27,22 +27,15 @@ class PpesExport implements FromArray, WithEvents, ShouldAutoSize, WithTitle
         $query = Equipment::query();
 
         // ✅ APPLY FILTERS BASED ON PAGE
-        if ($this->request->filled('date_from')) {
-            $query->whereDate('acquisition_date', '=', $this->request->date_from);
-        }
-        if ($this->request->filled('date_to')) {
+        if ($this->request->filled('date_from') && $this->request->filled('date_to')) {
+            $query->whereBetween('acquisition_date', [$this->request->date_from, $this->request->date_to]);
+        } elseif ($this->request->filled('date_from')) {
+            $query->whereDate('acquisition_date', '>=', $this->request->date_from);
+        } elseif ($this->request->filled('date_to')) {
             $query->whereDate('acquisition_date', '<=', $this->request->date_to);
         }
         if ($this->request->filled('classification')) {
             $query->where('article', 'like', '%' . $this->request->classification . '%');
-        }
-        if ($this->request->filled('search')) {
-            $search = $this->request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('article', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('property_number', 'like', "%{$search}%");
-            });
         }
 
         $query->where('condition', 'unserviceable');
@@ -73,9 +66,31 @@ class PpesExport implements FromArray, WithEvents, ShouldAutoSize, WithTitle
         });
 
         $asOfRaw = $this->request->query('as_of');
+        // Build date range string
+        $dateRange = '';
+        if ($this->request->filled('date_from') && $this->request->filled('date_to')) {
+            $dateRange = 'From ' . \Carbon\Carbon::parse($this->request->date_from)->format('F d, Y') . ' to ' . \Carbon\Carbon::parse($this->request->date_to)->format('F d, Y');
+        } elseif ($this->request->filled('date_from')) {
+            $dateRange = 'From ' . \Carbon\Carbon::parse($this->request->date_from)->format('F d, Y');
+        } elseif ($this->request->filled('date_to')) {
+            $dateRange = 'Up to ' . \Carbon\Carbon::parse($this->request->date_to)->format('F d, Y');
+        }
+
+        // Build applied filters string
+        $filters = [];
+        if (!empty($dateRange)) {
+            $filters[] = 'Date Range: ' . $dateRange;
+        }
+        if ($this->request->filled('classification')) {
+            $filters[] = 'Classification: ' . $this->request->classification;
+        }
+        $appliedFilters = implode(', ', $filters);
+
         $header = [
             'entity_name' => $this->request->entity_name ?? '',
             'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : '',
+            'date_range' => $dateRange,
+            'applied_filters' => $appliedFilters,
             'accountable_person' => $this->request->accountable_person ?? '',
             'position' => $this->request->position ?? '',
             'office' => $this->request->office ?? '',
@@ -89,6 +104,9 @@ class PpesExport implements FromArray, WithEvents, ShouldAutoSize, WithTitle
         $data[] = ['(ATI-RTC I)'];
         $data[] = [''];
         $data[] = ['As of: ' . ($header['as_of'] ?: '_____________')];
+        if (!empty($header['date_range'])) {
+            $data[] = [$header['date_range']];
+        }
         $data[] = ['Entity Name: ' . ($header['entity_name'] ?: '_____________________________')];
         $data[] = [''];
         $data[] = [''];

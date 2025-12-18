@@ -25,8 +25,12 @@ class RpciExport implements FromArray, WithEvents
         $query = Supplies::query();
 
         // Apply filters
-        if ($this->request->filled('date_from')) {
-            $query->whereDate('purchase_date', '=', $this->request->date_from);
+        if ($this->request->filled('date_from') && $this->request->filled('date_to')) {
+            $query->whereBetween('purchase_date', [$this->request->date_from, $this->request->date_to]);
+        } elseif ($this->request->filled('date_from')) {
+            $query->whereDate('purchase_date', '>=', $this->request->date_from);
+        } elseif ($this->request->filled('date_to')) {
+            $query->whereDate('purchase_date', '<=', $this->request->date_to);
         }
         if ($this->request->filled('description')) {
             $query->where('name', 'like', '%' . $this->request->description . '%');
@@ -44,9 +48,9 @@ class RpciExport implements FromArray, WithEvents
         // Format each row based on table format
         $rpciItems = $supplies->map(function ($supply) {
             return [
-                'article' => '---',
-                'description' => $supply->name ?? '',
-                'stock_number' => '---',
+                'article' => $supply->name ?? '',
+                'description' => $supply->description ?? '',
+                'stock_number' => $supply->id ?? '',
                 'unit_of_measure' => $supply->unit ?? '',
                 'unit_value' => (float) ($supply->unit_price ?? 0.00), // return as float for Excel formatting
                 'balance_per_card' => (string) ((int) ($supply->quantity ?? 0)), // return as string to ensure display
@@ -57,9 +61,31 @@ class RpciExport implements FromArray, WithEvents
             ];
         });
 
+        // Build date range string
+        $dateRange = '';
+        if ($this->request->filled('date_from') && $this->request->filled('date_to')) {
+            $dateRange = 'From ' . \Carbon\Carbon::parse($this->request->date_from)->format('F d, Y') . ' to ' . \Carbon\Carbon::parse($this->request->date_to)->format('F d, Y');
+        } elseif ($this->request->filled('date_from')) {
+            $dateRange = 'From ' . \Carbon\Carbon::parse($this->request->date_from)->format('F d, Y');
+        } elseif ($this->request->filled('date_to')) {
+            $dateRange = 'Up to ' . \Carbon\Carbon::parse($this->request->date_to)->format('F d, Y');
+        }
+
+        // Build applied filters string
+        $filters = [];
+        if ($this->request->filled('description')) {
+            $filters[] = 'Description: ' . $this->request->description;
+        }
+        if ($this->request->filled('status')) {
+            $filters[] = 'Status: ' . $this->request->status;
+        }
+        $appliedFilters = implode(', ', $filters);
+
         $asOfRaw = $this->request->query('as_of');
         $header = [
             'as_of' => $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : '',
+            'date_range' => $dateRange,
+            'applied_filters' => $appliedFilters,
             'fund_cluster' => $this->request->query('fund_cluster', ''),
             'accountable_person' => $this->request->query('accountable_person', ''),
             'position' => $this->request->query('position', ''),
@@ -74,6 +100,9 @@ class RpciExport implements FromArray, WithEvents
         $data[] = ['COMMON SUPPLIES AND EQUIPMENT', '', '', '', '', '', '', '', '', ''];
         $data[] = ['(REGULAR)', '', '', '', '', '', '', '', '', ''];
         $data[] = ['As of ' . $header['as_of'], '', '', '', '', '', '', '', '', ''];
+        if (!empty($header['applied_filters'])) {
+            $data[] = [$header['applied_filters'], '', '', '', '', '', '', '', '', ''];
+        }
         $data[] = ['Fund Cluster : ' . $header['fund_cluster'], '', '', '', '', '', '', '', '', ''];
         $data[] = ['', '', '', '', '', '', '', '', '', ''];
 

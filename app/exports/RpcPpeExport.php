@@ -26,8 +26,12 @@ class RpcPpeExport implements FromArray, WithEvents
             ->orderBy('property_number');
 
         // Apply filters if provided
-        if ($this->request->filled('date_from')) {
-            $query->whereDate('acquisition_date', '=', $this->request->date_from);
+        if ($this->request->filled('date_from') && $this->request->filled('date_to')) {
+            $query->whereBetween('acquisition_date', [$this->request->date_from, $this->request->date_to]);
+        } elseif ($this->request->filled('date_from')) {
+            $query->whereDate('acquisition_date', '>=', $this->request->date_from);
+        } elseif ($this->request->filled('date_to')) {
+            $query->whereDate('acquisition_date', '<=', $this->request->date_to);
         }
 
         if ($this->request->filled('classification')) {
@@ -50,12 +54,37 @@ class RpcPpeExport implements FromArray, WithEvents
         $formattedDate = $asOfRaw ? \Carbon\Carbon::parse($asOfRaw)->format('F d, Y') : '';
         $assumptionDate = $this->request->query('assumption_date') ?: '';
 
+        // Build applied filters string
+        $filters = [];
+        if ($this->request->filled('date_from') && $this->request->filled('date_to')) {
+            $filters[] = 'Date Range: From ' . \Carbon\Carbon::parse($this->request->date_from)->format('F d, Y') . ' to ' . \Carbon\Carbon::parse($this->request->date_to)->format('F d, Y');
+        } elseif ($this->request->filled('date_from')) {
+            $filters[] = 'Date Range: From ' . \Carbon\Carbon::parse($this->request->date_from)->format('F d, Y');
+        } elseif ($this->request->filled('date_to')) {
+            $filters[] = 'Date Range: Up to ' . \Carbon\Carbon::parse($this->request->date_to)->format('F d, Y');
+        }
+        if ($this->request->filled('classification')) {
+            $filters[] = 'Classification: ' . $this->request->classification;
+        }
+        if ($this->request->filled('condition')) {
+            $filters[] = 'Condition: ' . $this->request->condition;
+        }
+        if ($this->request->filled('description')) {
+            $filters[] = 'Description: ' . $this->request->description;
+        }
+        $appliedFilters = implode(', ', $filters);
+
         $data = [];
 
         // Header rows - matching screen view exactly
         $data[] = ['REPORT ON THE PHYSICAL COUNT OF PROPERTY, PLANT AND EQUIPMENT', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 1 - Title
         $data[] = [$formattedDate ? 'As of ' . $formattedDate : '', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 2 - Date
-        $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 3)
+        if (!empty($appliedFilters)) {
+            $data[] = [$appliedFilters, '', '', '', '', '', '', '', '', '', '', '', '', '']; // Row 3 - Applied Filters
+            $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 4)
+        } else {
+            $data[] = ['', '', '', '', '', '', '', '', '', '', '', '', '', '']; // Empty row (Row 3)
+        }
 
         // Header grid layout - exactly matching screen view (4 columns)
         $data[] = ['Entity Name:', $entityName, '', '', 'Accountable Officer:', $accountablePerson, '', '', 'Position:', $position, '', '', 'Office:', $office]; // Row 4

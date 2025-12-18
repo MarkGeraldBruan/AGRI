@@ -59,7 +59,7 @@
                 <span class="title">Generate Cards</span>
             </a>
             <ul class="dropdown-menu">
-                <li class="{{ Request::is('client/stockcard*') ? 'active' : '' }}">
+                <li class="{{ Request::is('client/stockcard*') && !Request::is('client/stockcard/audit-trail') ? 'active' : '' }}">
                     <a href="{{ route('client.stockcard.index') }}">
                         <span class="icon"><ion-icon name="document-text-outline"></ion-icon></span>
                         <span class="title">Stock Card</span>
@@ -71,10 +71,14 @@
                         <span class="title">Property Card</span>
                     </a>
                 </li>
+                <li class="{{ Request::is('client/stockcard/audit-trail') ? 'active' : '' }}">
+                    <a href="{{ route('client.stockcard.audit-trail') }}">
+                        <span class="icon"><ion-icon name="time-outline"></ion-icon></span>
+                        <span class="title">Audit Trail</span>
+                    </a>
+                </li>
             </ul>
         </li>
-        
-
         
         <li class="{{ Request::is('client/help*') ? 'hovered' : '' }}">
             <a href="{{ route('client.help.index') }}">
@@ -176,7 +180,5 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = this.href;
         });
     });
-
-
 });
 </script>

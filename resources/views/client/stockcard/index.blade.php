@@ -31,9 +31,9 @@
                         <div class="search-filter-group">
                             <div class="search-box">
                                 <i class="fas fa-search"></i>
-                                <input type="text" placeholder="Search by items or categories" 
+                                <input type="text" placeholder="Search by items, categories, or ID"
                                        value="{{ request('search') }}" id="searchInput">
-                            </div>                    
+                            </div>
                         </div>
                         
                         <div class="action-buttons">
@@ -150,9 +150,7 @@
                         
                         <!-- Pagination -->
                         @if($supplies->hasPages())
-                            <div class="pagination">
-                                {{ $supplies->appends(request()->query())->links() }}
-                            </div>
+                            {{ $supplies->appends(request()->query())->links('vendor.pagination.simple') }}
                         @endif
                     @else
                         <div class="empty-state">
@@ -186,7 +184,7 @@
             $('#searchInput').on('input', function() {
                 clearTimeout(searchTimeout);
                 const searchTerm = $(this).val();
-                
+
                 searchTimeout = setTimeout(() => {
                     const url = new URL(window.location.href);
                     if (searchTerm) {
@@ -194,6 +192,7 @@
                     } else {
                         url.searchParams.delete('search');
                     }
+                    url.searchParams.delete('page'); // Reset to first page
                     window.location.href = url.toString();
                 }, 500);
             });
@@ -207,6 +206,7 @@
                 } else {
                     url.searchParams.delete('category');
                 }
+                url.searchParams.delete('page'); // Reset to first page
                 window.location.href = url.toString();
             });
 
@@ -219,6 +219,7 @@
                 } else {
                     url.searchParams.delete('low_stock');
                 }
+                url.searchParams.delete('page'); // Reset to first page
                 window.location.href = url.toString();
             });
         });

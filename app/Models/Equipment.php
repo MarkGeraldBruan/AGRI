@@ -103,7 +103,8 @@ class Equipment extends Model
                   ->orWhere('description', 'like', "%{$search}%")
                   ->orWhere('property_number', 'like', "%{$search}%")
                   ->orWhere('location', 'like', "%{$search}%")
-                  ->orWhere('responsible_person', 'like', "%{$search}%");
+                  ->orWhere('responsible_person', 'like', "%{$search}%")
+                  ->orWhere('id', '=', $search);
             });
         }
         return $query;

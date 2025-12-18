@@ -100,6 +100,9 @@
         <h1>{!! isset($header['entity_name']) && trim($header['entity_name']) !== '' ? e($header['entity_name']) : '______' !!}</h1>
         <h1>Report of Supplies and Materials Issued</h1>
         <p>For the Month of {!! $header['as_of'] ?: now()->format('F Y') !!}</p>
+        @if(!empty($header['applied_filters']))
+            <p>{!! $header['applied_filters'] !!}</p>
+        @endif
         <p>Fund Cluster: {!! isset($header['fund_cluster']) && trim($header['fund_cluster']) !== '' ? e($header['fund_cluster']) : '__________________________' !!}</p>
     </div>
 

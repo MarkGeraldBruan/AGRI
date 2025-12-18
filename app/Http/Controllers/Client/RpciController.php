@@ -17,8 +17,12 @@ class RpciController extends Controller
         $query = Supplies::query();
 
         // Apply filters
-        if ($request->filled('date_from')) {
-            $query->whereDate('purchase_date', '=', $request->date_from);
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('purchase_date', [$request->date_from, $request->date_to]);
+        } elseif ($request->filled('date_from')) {
+            $query->whereDate('purchase_date', '>=', $request->date_from);
+        } elseif ($request->filled('date_to')) {
+            $query->whereDate('purchase_date', '<=', $request->date_to);
         }
         if ($request->filled('description')) {
             $query->where('name', 'like', '%' . $request->description . '%');
@@ -38,9 +42,9 @@ class RpciController extends Controller
 
         $rpciItems = $supplies->map(function ($supply) {
             return (object) [
-                'article' => '---', // Placeholder for article
-                'description' => $supply->name,
-                'stock_number' => '---', // Placeholder for stock number
+                'article' => $supply->name,
+                'description' => $supply->description,
+                'stock_number' => $supply->id, // Placeholder for stock number
                 'unit_of_measure' => $supply->unit,
                 'unit_value' => $supply->unit_price,
                 'balance_per_card' => $supply->quantity,
@@ -51,8 +55,32 @@ class RpciController extends Controller
             ];
         });
 
+        // Build date range string
+        $dateRange = '';
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $dateRange = 'From ' . Carbon::parse($request->date_from)->format('F d, Y') . ' to ' . Carbon::parse($request->date_to)->format('F d, Y');
+        } elseif ($request->filled('date_from')) {
+            $dateRange = 'From ' . Carbon::parse($request->date_from)->format('F d, Y');
+        } elseif ($request->filled('date_to')) {
+            $dateRange = 'Up to ' . Carbon::parse($request->date_to)->format('F d, Y');
+        }
+
+        // Build applied filters string
+        $filters = [];
+        if (!empty($dateRange)) {
+            $filters[] = 'Date Range: ' . $dateRange;
+        }
+        if ($request->filled('description')) {
+            $filters[] = 'Description: ' . $request->description;
+        }
+        if ($request->filled('status')) {
+            $filters[] = 'Status: ' . $request->status;
+        }
+        $appliedFilters = implode(', ', $filters);
+
         $header = [
             'as_of' => $request->query('as_of') ? Carbon::parse($request->query('as_of'))->format('F d, Y') : '',
+            'date_range' => $dateRange,
             'entity_name' => $request->query('entity_name', ''),
             'fund_cluster' => $request->query('fund_cluster', ''),
             'accountable_person' => $request->query('accountable_person', ''),
@@ -76,8 +104,12 @@ class RpciController extends Controller
         $query = Supplies::query();
 
         // Apply same filters as index
-        if ($request->filled('date_from')) {
-            $query->whereDate('purchase_date', '=', $request->date_from);
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('purchase_date', [$request->date_from, $request->date_to]);
+        } elseif ($request->filled('date_from')) {
+            $query->whereDate('purchase_date', '>=', $request->date_from);
+        } elseif ($request->filled('date_to')) {
+            $query->whereDate('purchase_date', '<=', $request->date_to);
         }
         if ($request->filled('description')) {
             $query->where('name', 'like', '%' . $request->description . '%');
@@ -94,9 +126,9 @@ class RpciController extends Controller
 
         $rpciItems = $supplies->map(function ($supply) {
             return (object) [
-                'article' => '---',
-                'description' => $supply->name,
-                'stock_number' => '---',
+                'article' => $supply->name,
+                'description' => $supply->description,
+                'stock_number' => $supply->id,
                 'unit_of_measure' => $supply->unit,
                 'unit_value' => $supply->unit_price,
                 'balance_per_card' => $supply->quantity,
@@ -107,8 +139,33 @@ class RpciController extends Controller
             ];
         });
 
+        // Build date range string
+        $dateRange = '';
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $dateRange = 'From ' . Carbon::parse($request->date_from)->format('F d, Y') . ' to ' . Carbon::parse($request->date_to)->format('F d, Y');
+        } elseif ($request->filled('date_from')) {
+            $dateRange = 'From ' . Carbon::parse($request->date_from)->format('F d, Y');
+        } elseif ($request->filled('date_to')) {
+            $dateRange = 'Up to ' . Carbon::parse($request->date_to)->format('F d, Y');
+        }
+
+        // Build applied filters string
+        $filters = [];
+        if (!empty($dateRange)) {
+            $filters[] = 'Date Range: ' . $dateRange;
+        }
+        if ($request->filled('description')) {
+            $filters[] = 'Description: ' . $request->description;
+        }
+        if ($request->filled('status')) {
+            $filters[] = 'Status: ' . $request->status;
+        }
+        $appliedFilters = implode(', ', $filters);
+
         $header = [
             'as_of' => $request->query('as_of') ? Carbon::parse($request->query('as_of'))->format('F d, Y') : '',
+            'date_range' => $dateRange,
+            'applied_filters' => $appliedFilters,
             'entity_name' => $request->query('entity_name', ''),
             'fund_cluster' => $request->query('fund_cluster', ''),
             'accountable_person' => $request->query('accountable_person', ''),

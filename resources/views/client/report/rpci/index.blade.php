@@ -225,7 +225,7 @@
             /* Set proper page margins for complete visibility */
             @page {
                 margin: 0.5cm;
-                size: A4;
+                size: A4 landscape;
             }
 
             /* Reset body and page styles to match PDF */
@@ -354,7 +354,7 @@
             /* Style the table for print */
             .report-table-container {
                 padding: 0 !important;
-                margin: 0 auto !important;
+                margin: 20px auto 0 auto !important;
                 box-shadow: none !important;
                 border-radius: 0 !important;
                 width: 100% !important;
@@ -364,7 +364,7 @@
             .report-table {
                 width: 100%;
                 border-collapse: collapse;
-                font-size: 9px;
+                font-size: 6px;
                 page-break-inside: auto;
                 table-layout: fixed;
             }
@@ -381,8 +381,8 @@
             .report-table th,
             .report-table td {
                 border: 1px solid #000 !important;
-                padding: 3px 2px !important;
-                font-size: 8px !important;
+                padding: 1px 0.5px !important;
+                font-size: 6px !important;
                 text-align: center;
                 word-wrap: break-word;
                 overflow-wrap: break-word;
@@ -393,8 +393,20 @@
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 font-weight: 600;
-                font-size: 8px !important;
+                font-size: 6px !important;
             }
+
+            /* Set specific column widths for better fit */
+            .report-table th:nth-child(1), .report-table td:nth-child(1) { width: 10%; } /* Article */
+            .report-table th:nth-child(2), .report-table td:nth-child(2) { width: 20%; } /* Description */
+            .report-table th:nth-child(3), .report-table td:nth-child(3) { width: 10%; } /* Stock Number */
+            .report-table th:nth-child(4), .report-table td:nth-child(4) { width: 8%; } /* Unit of Measure */
+            .report-table th:nth-child(5), .report-table td:nth-child(5) { width: 10%; } /* Unit Value */
+            .report-table th:nth-child(6), .report-table td:nth-child(6) { width: 8%; } /* Balance Per Card */
+            .report-table th:nth-child(7), .report-table td:nth-child(7) { width: 8%; } /* On Hand Per Count */
+            .report-table th:nth-child(8), .report-table td:nth-child(8) { width: 8%; } /* Shortage/Overage Quantity */
+            .report-table th:nth-child(9), .report-table td:nth-child(9) { width: 10%; } /* Shortage/Overage Value */
+            .report-table th:nth-child(10), .report-table td:nth-child(10) { width: 18%; } /* Remarks */
 
             /* Ensure all content fits within page */
             * {
@@ -422,10 +434,10 @@
 
             <div class="report-header">
                 <h1>REPORT ON THE PHYSICAL COUNT OF INVENTORIES</h1>
-                <h1>COMMON SUPPLIES AND EQUIPMENTS</h1>
+                <h1>COMMON SUPPLIES</h1>
                 <h1>(REGULAR)</h1>
                 <p>As of {!! isset($header['as_of']) && trim($header['as_of']) !== '' ? e($header['as_of']) : '<span style="border-bottom:1px solid #000;padding:0 80px;display:inline-block;">&nbsp;</span>' !!}</p>
-                <p>Fund Cluster : {!! isset($header['fund_cluster']) && trim($header['fund_cluster']) !== '' ? e($header['fund_cluster']) : '<span style="border-bottom:1px solid #000;padding:0 40px;display:inline-block;">&nbsp;</span>' !!}</p>
+                <p>Fund Cluster: {!! isset($header['fund_cluster']) && trim($header['fund_cluster']) !== '' ? e($header['fund_cluster']) : '<span style="border-bottom:1px solid #000;padding:0 40px;display:inline-block;">&nbsp;</span>' !!}</p>
             </div>
 
             {{-- Header display section --}}
@@ -478,10 +490,15 @@
             {{-- Data filters --}}
             <div class="filters-section">
                 <form method="GET" action="{{ route('client.report.rpci') }}" class="filters-form">
-                    <div class="filter-group">
+                        <div class="filter-group">
                         <label for="date_from">Date From</label>
                         <input type="date" id="date_from" name="date_from" value="{{ request('date_from') }}">
-                    </div>
+                        </div>
+
+                        <div class="filter-group">
+                        <label for="date_to">Date To</label>
+                        <input type="date" id="date_to" name="date_to" value="{{ request('date_to') }}">
+                        </div>
                     <div class="filter-group">
                         <label for="description">Description</label>
                         <select id="description" name="description">
@@ -517,6 +534,7 @@
                 <form method="get" class="filters-form">
                     {{-- preserve current filters as hidden inputs --}}
                     <input type="hidden" name="date_from" value="{{ request('date_from') }}">
+                    <input type="hidden" name="date_to" value="{{ request('date_to') }}">
                     <input type="hidden" name="description" value="{{ request('description') }}">
                     <input type="hidden" name="status" value="{{ request('status') }}">
 

@@ -31,19 +31,21 @@
                         <div class="search-filter-group">
                             <div class="search-box">
                                 <i class="fas fa-search"></i>
-                                <input type="text" placeholder="Search by article, description, or property number" 
+                                <input type="text" placeholder="Search by article, description, property number, or ID"
                                        value="{{ request('search') }}" id="searchInput">
                             </div>
-                            
-                            <select id="conditionFilter" class="filter-select">
-                                <option value="">All Conditions</option>
-                                <option value="Serviceable" {{ request('condition') == 'Serviceable' ? 'selected' : '' }}>
-                                    Serviceable
-                                </option>
-                                <option value="Unserviceable" {{ request('condition') == 'Unserviceable' ? 'selected' : '' }}>
-                                    Unserviceable
-                                </option>
-                            </select>
+
+                            <div class="filter-dropdown">
+                                <select id="conditionFilter">
+                                    <option value="">All Conditions</option>
+                                    <option value="Serviceable" {{ request('condition') == 'Serviceable' ? 'selected' : '' }}>
+                                        Serviceable
+                                    </option>
+                                    <option value="Unserviceable" {{ request('condition') == 'Unserviceable' ? 'selected' : '' }}>
+                                        Unserviceable
+                                    </option>
+                                </select>
+                            </div>
                         </div>
                         
                         <div class="action-buttons">
@@ -142,7 +144,7 @@
                                             </span>
                                         </td>
                                         <td style="text-align: center; vertical-align: middle;">
-                                            <div class="action-buttons-cell" style="justify-content: center;">
+                                            <div class="action-buttons-cell">
                                                 <a href="{{ route('client.propertycard.show', $item->id) }}" class="btn btn-primary btn-sm" title="View Details">
                                                     <i class="fas fa-eye"></i>
                                                 </a>
@@ -155,9 +157,7 @@
                         
                         <!-- Pagination -->
                         @if($equipment->hasPages())
-                            <div class="pagination">
-                                {{ $equipment->appends(request()->query())->links() }}
-                            </div>
+                            {{ $equipment->appends(request()->query())->links('vendor.pagination.simple') }}
                         @endif
                     @else
                         <div class="empty-state">
@@ -185,7 +185,7 @@
             $('#searchInput').on('input', function() {
                 clearTimeout(searchTimeout);
                 const searchTerm = $(this).val();
-                
+
                 searchTimeout = setTimeout(() => {
                     const url = new URL(window.location.href);
                     if (searchTerm) {

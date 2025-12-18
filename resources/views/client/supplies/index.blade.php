@@ -1,9 +1,8 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Manage Supplies</title>
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('css/supplies.css') }}">
@@ -11,6 +10,7 @@
     <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
     <div class="container">
@@ -25,16 +25,16 @@
                         <i class="fas fa-boxes"></i>
                         Manage Supplies
                     </h1>
-
+                    
                     <!-- Controls Row -->
                     <div class="controls-row">
                         <div class="search-filter-group">
                             <div class="search-box">
                                 <i class="fas fa-search"></i>
-                                <input type="text" placeholder="Search by items or categories"
+                                <input type="text" placeholder="Search by items, categories, or ID"
                                        value="{{ request('search') }}" id="searchInput">
                             </div>
-
+                            
                             <div class="filter-dropdown">
                                 <select id="categoryFilter">
                                     <option value="">All Categories</option>
@@ -45,7 +45,7 @@
                                     @endforeach
                                 </select>
                             </div>
-
+                            
                             <div class="filter-dropdown">
                                 <select id="stockFilter">
                                     <option value="">All Items</option>
@@ -53,7 +53,7 @@
                                 </select>
                             </div>
                         </div>
-
+                        
                         <div class="action-buttons">
                             {{-- Only show Add button if user has create permission --}}
                             @if(auth()->user()->hasPermission('create'))
@@ -62,10 +62,15 @@
                                     Add Items
                                 </a>
                             @endif
-
+                            @if(auth()->user()->hasPermission('read'))
+                                <a href="{{ route('deleted-supplies.index') }}" class="btn btn-warning">
+                                    <i class="fas fa-trash-restore"></i>
+                                    Archive
+                                </a>
+                            @endif
                             {{-- Only show Export if user can read --}}
                             @if(auth()->user()->hasPermission('read'))
-                                <a href="{{ route('supplies.export') }}" class="btn btn-primary">
+                                <a href="{{ route('supplies.export', request()->query()) }}" class="btn btn-primary">
                                     <i class="fas fa-download"></i>
                                     Export
                                 </a>
@@ -81,7 +86,7 @@
                         {{ session('success') }}
                     </div>
                 @endif
-
+                
                 <!-- Permission Warning -->
                 @if(!auth()->user()->hasPermission('read'))
                     <div class="alert alert-warning">
@@ -89,13 +94,13 @@
                         You do not have permission to view supplies. Please contact an administrator.
                     </div>
                 @else
-                <!-- Table Section -->
-                <div class="supplies-table-container">
+                    <!-- Table Section -->
+                    <div class="supplies-table-container">
                         @if($supplies->count() > 0)
                             <table class="supplies-table">
                                 <thead>
                                     <tr>
-                                        <th style="width: 5%; text-align: center;">
+                                        <th>
                                             <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'id', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}">
                                                 ID
                                                 @if(request('sort_by') == 'id')
@@ -103,7 +108,7 @@
                                                 @endif
                                             </a>
                                         </th>
-                                        <th style="width: 20%;">
+                                        <th>
                                             <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'name', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}">
                                                 Items
                                                 @if(request('sort_by') == 'name')
@@ -111,7 +116,7 @@
                                                 @endif
                                             </a>
                                         </th>
-                                        <th style="width: 20%;">
+                                        <th>
                                             <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'quantity', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}">
                                                 Quantity
                                                 @if(request('sort_by') == 'quantity')
@@ -119,7 +124,7 @@
                                                 @endif
                                             </a>
                                         </th>
-                                        <th style="width: 10%; text-align: center;">
+                                        <th>
                                             <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'purchase_date', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}">
                                                 Date
                                                 @if(request('sort_by') == 'purchase_date')
@@ -127,7 +132,7 @@
                                                 @endif
                                             </a>
                                         </th>
-                                        <th style="width: 30%; text-align: center;">
+                                        <th>
                                             <a href="{{ request()->fullUrlWithQuery(['sort_by' => 'category', 'sort_direction' => request('sort_direction') == 'asc' ? 'desc' : 'asc']) }}">
                                                 Categories
                                                 @if(request('sort_by') == 'category')
@@ -135,14 +140,14 @@
                                                 @endif
                                             </a>
                                         </th>
-                                        <th style="width: 15%; text-align: center;">Action</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($supplies as $supply)
                                         <tr>
-                                            <td style="text-align: center;">
-                                                <div style="font-weight: 600; color: #6c757d;">
+                                            <td>
+                                                <div style="font-weight: 600; color: #6c757d; font-size: 14px;">
                                                     #{{ str_pad($supply->id, 4, '0', STR_PAD_LEFT) }}
                                                 </div>
                                             </td>
@@ -170,19 +175,19 @@
                                                     </span>
                                                 @endif
                                             </td>
-                                            <td style="text-align: center;">
+                                            <td>
                                                 {{ $supply->formatted_purchase_date }}
                                             </td>
-                                            <td style="text-align: center;">
+                                            <td>
                                                 @if($supply->category)
-                                                    <span class="status-badge" style="background: #e3f2fd; color: #1565c0; font-size: 12px; padding: 4px 8px;">
+                                                    <span class="status-badge" style="background: #e3f2fd; color: #1565c0;">
                                                         {{ $supply->category }}
                                                     </span>
                                                 @else
                                                     <span style="color: #6c757d;">—</span>
                                                 @endif
                                             </td>
-                                            <td style="text-align: center;">
+                                            <td>
                                                 <div class="action-buttons-cell">
                                                     {{-- View button - requires read permission --}}
                                                     @if(auth()->user()->hasPermission('read'))
@@ -225,9 +230,7 @@
                             
                             <!-- Pagination -->
                             @if($supplies->hasPages())
-                                <div class="pagination">
-                                    {{ $supplies->appends(request()->query())->links() }}
-                                </div>
+                                {{ $supplies->appends(request()->query())->links('vendor.pagination.simple') }}
                             @endif
                         @else
                             <div class="empty-state">
@@ -245,7 +248,7 @@
                     </div>
                 @endif
             </div>
-        </div>
+        </div>   
     </div>
 
     <script>
@@ -260,7 +263,7 @@
             $('#searchInput').on('input', function() {
                 clearTimeout(searchTimeout);
                 const searchTerm = $(this).val();
-                
+
                 searchTimeout = setTimeout(() => {
                     const url = new URL(window.location.href);
                     if (searchTerm) {
@@ -268,6 +271,7 @@
                     } else {
                         url.searchParams.delete('search');
                     }
+                    url.searchParams.delete('page'); // Reset to first page
                     window.location.href = url.toString();
                 }, 500);
             });
@@ -280,6 +284,7 @@
                 } else {
                     url.searchParams.delete('category');
                 }
+                url.searchParams.delete('page'); // Reset to first page
                 window.location.href = url.toString();
             });
 
@@ -291,11 +296,10 @@
                 } else {
                     url.searchParams.delete('low_stock');
                 }
+                url.searchParams.delete('page'); // Reset to first page
                 window.location.href = url.toString();
             });
         });
-
-
     </script>
 
     @include('layouts.core.footer')

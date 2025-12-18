@@ -88,8 +88,13 @@ class ReportController extends Controller
         // Reuse logic similar to RpciController
         $query = \App\Models\Supplies::query();
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('purchase_date', '=', $request->date_from);
+        // Apply filters
+        if ($request->filled('date_from') && $request->filled('date_to')) {
+            $query->whereBetween('purchase_date', [$request->date_from, $request->date_to]);
+        } elseif ($request->filled('date_from')) {
+            $query->whereDate('purchase_date', '>=', $request->date_from);
+        } elseif ($request->filled('date_to')) {
+            $query->whereDate('purchase_date', '<=', $request->date_to);
         }
         if ($request->filled('description')) {
             $query->where('name', 'like', '%' . $request->description . '%');
@@ -106,9 +111,9 @@ class ReportController extends Controller
 
         $rpciItems = $supplies->map(function ($supply) {
             return (object) [
-                'article' => '---',
-                'description' => $supply->name,
-                'stock_number' => '---',
+                'article' => $supply->name,
+                'description' => $supply->description,
+                'stock_number' => $supply->id,
                 'unit_of_measure' => $supply->unit,
                 'unit_value' => $supply->unit_price,
                 'balance_per_card' => $supply->quantity,

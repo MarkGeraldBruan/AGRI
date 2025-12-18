@@ -88,7 +88,7 @@ class DashboardController extends Controller
     public function getRecentItems()
     {
         $recentItems = Supplies::orderBy('created_at', 'desc')
-                              ->take(5)
+                              ->take(10)
                               ->get(['id', 'name', 'quantity', 'created_at']);
 
         return response()->json($recentItems);

@@ -25,31 +25,31 @@
                         <i class="fas fa-users"></i>
                         Manage Users
                     </h1>
-                </div>
-
-                <!-- Controls Row -->
-                <div class="controls-row">
-                    <div class="search-filter-group">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" placeholder="Search by name or email"
-                                   id="userSearch">
+                    
+                    <!-- Controls Row -->
+                    <div class="controls-row">
+                        <div class="search-filter-group">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" placeholder="Search by name or email" 
+                                       id="userSearch">
+                            </div>
+                            
+                            <div class="filter-dropdown">
+                                <select id="roleFilter">
+                                    <option value="">All Roles</option>
+                                    <option value="admin">Admin</option>
+                                    <option value="user">User</option>
+                                </select>
+                            </div>
                         </div>
-
-                        <div class="filter-dropdown">
-                            <select id="roleFilter">
-                                <option value="">All Roles</option>
-                                <option value="admin">Admin</option>
-                                <option value="user">User</option>
-                            </select>
+                        
+                        <div class="action-buttons">
+                            <a href="{{ url('client/users/create') }}" class="btn btn-success">
+                                <i class="fas fa-plus"></i>
+                                Add User
+                            </a>
                         </div>
-                    </div>
-
-                    <div class="action-buttons">
-                        <a href="{{ url('client/users/create') }}" class="btn btn-success">
-                            <i class="fas fa-plus"></i>
-                            Add User
-                        </a>
                     </div>
                 </div>
                 
@@ -63,7 +63,7 @@
                 
                 <!-- Table Section -->
                 <div class="users-table-container">
-                    @if(count($user ?? []) > 0)
+                    @if(count($users ?? []) > 0)
                         <table class="users-table">
                             <thead>
                                 <tr>
@@ -86,7 +86,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($user as $key => $userItem)
+                                @foreach($users as $key => $userItem)
                                     <tr class="user-row" data-role="{{ strtolower($userItem->role ?? 'user') }}">
                                         <td style="text-align: center; font-weight: 600; color: #495057;">
                                             {{ $key + 1 }}
