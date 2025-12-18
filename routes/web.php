@@ -18,6 +18,7 @@ use App\Http\Controllers\Client\RsmiController;
 use App\Http\Controllers\Client\RpciController;
 use App\Http\Controllers\Client\RpcPpeController;
 use App\Http\Controllers\Client\PpesController;
+use App\Http\Controllers\Client\IirupController;
 use App\Http\Controllers\Client\AboutController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -454,6 +455,11 @@ Route::prefix('client/report')->group(function () {
     Route::get('/rpc-ppe', [RpcPpeController::class, 'index'])->name('client.report.rpc-ppe');
     Route::get('/rpc-ppe/export/pdf', [RpcPpeController::class, 'exportPDF'])->name('client.report.rpc-ppe.export.pdf');
     Route::get('/rpc-ppe/export/excel', [RpcPpeController::class, 'exportExcel'])->name('client.report.rpc-ppe.export.excel');
+
+    // IIRUP report routes
+    Route::get('/iirup', [IirupController::class, 'index'])->name('client.report.iirup');
+    Route::get('/iirup/export/pdf', [IirupController::class, 'exportPDF'])->name('client.report.iirup.export.pdf');
+    Route::get('/iirup/export/excel', [IirupController::class, 'exportExcel'])->name('client.report.iirup.export.excel');
 });
 
 // Fallback route for authenticated users
